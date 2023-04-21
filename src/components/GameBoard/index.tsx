@@ -21,7 +21,6 @@ interface Props {
   currentPlayer: "white" | "black";
   changeCurrentPlayer: () => void;
   incrementDeadPieces: (piece: TPiece) => void;
-  deadPiaces: { black: TPiece[]; white: TPiece[] };
   reset: () => void;
 }
 
@@ -33,19 +32,22 @@ export default function GameBoard(props: Props) {
     null
   );
   const [showModal, setShowModal] = useState(false);
-  const [deadPiaces, setDeadPieces] = useState<TPiece[]>([]);
+  const [piecesToResurrect, setPiecesToResurrect] = useState<TPiece[]>([]);
   const [winner, setWinner] = useState<"white" | "black" | undefined>();
 
   useEffect(() => {
-    if (replacementPeace?.piece) {
+    if (replacementPeace?.piece?.color) {
+      // list dead pieces
+      let { color } = replacementPeace.piece;
+      setPiecesToResurrect(
+        ["Rook", "Knight", "Bishop", "Queen"].map((name) => ({
+          color,
+          name,
+        }))
+      );
+
       // show modal
       setShowModal(true);
-      // list dead pieces
-      setDeadPieces(
-        props.deadPiaces[
-          replacementPeace.piece.color as keyof typeof props.deadPiaces
-        ]
-      );
     }
   }, [replacementPeace]);
 
@@ -173,7 +175,7 @@ export default function GameBoard(props: Props) {
   };
 
   const reset = () => {
-    alert("Em desenvolvimento. Use a tecla F5 para recarregar a página 👍")
+    alert("Em desenvolvimento. Use a tecla F5 para recarregar a página 👍");
   };
 
   return (
@@ -202,7 +204,7 @@ export default function GameBoard(props: Props) {
       <div
         className={`
         absolute 
-        bg-[#00000080] 
+        bg-[#00000030] 
         top-0 
         bottom-0 
         left-0 
@@ -234,7 +236,7 @@ export default function GameBoard(props: Props) {
             </button>
           </div>
         ) : (
-          deadPiaces.map(
+          piecesToResurrect.map(
             (piece, i) =>
               piece?.name !== "Pawn" && (
                 <div

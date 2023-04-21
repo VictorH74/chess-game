@@ -40,6 +40,21 @@ function App() {
     [deadBlackPiaces, deadWhitePiaces]
   );
 
+  const decrementDeadPieces = useCallback(
+    (piece: TPiece) => {
+      if (!piece) return;
+
+      if (piece.color === "black") {
+        let index = deadBlackPiaces.findIndex((p) => p?.name === piece.name);
+        setDeadBlackPieces((prev) => prev.filter((_, i) => i !== index));
+      } else if (piece.color === "white") {
+        let index = deadWhitePiaces.findIndex((p) => p?.name === piece.name);
+        setDeadWhitePieces((prev) => prev.filter((_, i) => i !== index));
+      }
+    },
+    [deadBlackPiaces, deadWhitePiaces]
+  );
+
   const changeCurrentPlayer = useCallback(() => {
     setCurrentPlayer((prev) => (prev === "white" ? "black" : "white"));
   }, [currentPlayer]);
@@ -101,10 +116,6 @@ function App() {
             currentPlayer={currentPlayer}
             changeCurrentPlayer={changeCurrentPlayer}
             incrementDeadPieces={incrementDeadPieces}
-            deadPiaces={{
-              black: deadBlackPiaces,
-              white: deadWhitePiaces,
-            }}
             reset={reset}
           />
 
