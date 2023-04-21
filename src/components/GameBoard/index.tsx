@@ -8,6 +8,7 @@ import { KingPiece } from "@/classes/king";
 import { QueenPiece } from "@/classes/queen";
 import PeaceIcon from "../PieceIcon";
 import { getPiecebyPosition } from "@/utils/functions";
+import Board from "../Board";
 
 const array = Array(8).fill(undefined);
 const initialPositions = array.map((_, row) =>
@@ -32,20 +33,10 @@ export default function GameBoard(props: Props) {
     null
   );
   const [showModal, setShowModal] = useState(false);
-  const [piecesToResurrect, setPiecesToResurrect] = useState<TPiece[]>([]);
   const [winner, setWinner] = useState<"white" | "black" | undefined>();
 
   useEffect(() => {
     if (replacementPeace?.piece?.color) {
-      // list dead pieces
-      let { color } = replacementPeace.piece;
-      setPiecesToResurrect(
-        ["Rook", "Knight", "Bishop", "Queen"].map((name) => ({
-          color,
-          name,
-        }))
-      );
-
       // show modal
       setShowModal(true);
     }
@@ -60,38 +51,32 @@ export default function GameBoard(props: Props) {
     let { row: selectedRow, col: selectedCol } = selectedSquare.position;
     let { name, color } = selectedSquare.piece;
 
-    let places: string[] = [];
-
-    //===========================================================
     // PIECE LOGICS =============================================
-    //===========================================================
-
     if (name === "Pawn") {
-      places = PawnPiece.possibleMoves(board, selectedRow, selectedCol, color);
+      setPossibleMoves(
+        PawnPiece.possibleMoves(board, selectedRow, selectedCol, color)
+      );
     } else if (name === "Rook") {
-      // col+
-      places = RookPiece.possibleMoves(board, selectedRow, selectedCol, color);
+      setPossibleMoves(
+        RookPiece.possibleMoves(board, selectedRow, selectedCol, color)
+      );
     } else if (name === "Knight") {
-      places = KnightPiece.possibleMoves(
-        board,
-        selectedRow,
-        selectedCol,
-        color
+      setPossibleMoves(
+        KnightPiece.possibleMoves(board, selectedRow, selectedCol, color)
       );
     } else if (name === "Bishop") {
-      places = BishopPiece.possibleMoves(
-        board,
-        selectedRow,
-        selectedCol,
-        color
+      setPossibleMoves(
+        BishopPiece.possibleMoves(board, selectedRow, selectedCol, color)
       );
     } else if (name === "Queen") {
-      places = QueenPiece.possibleMoves(board, selectedRow, selectedCol, color);
+      setPossibleMoves(
+        QueenPiece.possibleMoves(board, selectedRow, selectedCol, color)
+      );
     } else if (name === "King") {
-      places = KingPiece.possibleMoves(board, selectedRow, selectedCol, color);
+      setPossibleMoves(
+        KingPiece.possibleMoves(board, selectedRow, selectedCol, color)
+      );
     }
-
-    setPossibleMoves(places);
   }, [selectedSquare]);
 
   const chooseReplacementPiece = (piece: TPiece) => {
@@ -104,22 +89,22 @@ export default function GameBoard(props: Props) {
   };
 
   const select = useCallback(
-    (squadObj: TSquare) => {
+    (square: TSquare) => {
       // Check if has some piece on selected square and if the selected piece color is equal to the current player color
-      if (!squadObj.piece || !(props.currentPlayer === squadObj.piece?.color))
+      if (!square.piece || !(props.currentPlayer === square.piece?.color))
         return;
-      setSelectedSquare(squadObj);
+      setSelectedSquare(square);
     },
     [selectedSquare]
   );
 
   const movePiece = useCallback(
-    (squadObj: TSquare) => {
-      let { row, col } = squadObj.position;
+    (square: TSquare) => {
+      let { row, col } = square.position;
 
       // Check if the current player has selected your piece and click on another piece with the same color
-      if (props.currentPlayer === squadObj.piece?.color) {
-        select(squadObj);
+      if (props.currentPlayer === square.piece?.color) {
+        select(square);
         return;
       }
 
@@ -133,25 +118,25 @@ export default function GameBoard(props: Props) {
       }
 
       let { row: selectedRow, col: selectedCol } = selectedSquare.position;
-      let pos = board;
+      let newBoard = board;
 
       if (
-        pos[row][col]?.piece?.color !== selectedSquare?.piece?.color &&
-        pos[row][col]?.piece?.color !== null
+        newBoard[row][col]?.piece?.color !== selectedSquare?.piece?.color &&
+        newBoard[row][col]?.piece?.color !== null
       ) {
-        props.incrementDeadPieces(pos[row][col].piece);
+        props.incrementDeadPieces(newBoard[row][col].piece);
       }
 
-      if (pos[row][col].piece?.name === "King") {
+      if (newBoard[row][col].piece?.name === "King") {
         setWinner(selectedSquare.piece?.color as "white" | "black");
         setShowModal(true);
       }
 
-      pos[row][col].piece = selectedSquare.piece;
-      pos[selectedRow][selectedCol].piece = null;
+      newBoard[row][col].piece = selectedSquare.piece;
+      newBoard[selectedRow][selectedCol].piece = null;
 
-      checkPiece(pos[row][col]);
-      setBoard(pos);
+      checkPiece(newBoard[row][col]);
+      setBoard(newBoard);
       setSelectedSquare(null);
       props.changeCurrentPlayer();
     },
@@ -180,27 +165,13 @@ export default function GameBoard(props: Props) {
 
   return (
     <>
-      <div
-        className={`
-      h-full
-      aspect-square shadow-xl overflow-hidden rounded-md
-      `}
-      >
-        {board.map((row: TSquare[], rowIndex) => (
-          <div key={rowIndex} className="flex flex-row">
-            {row.map((squareObj: TSquare, colIndex) => (
-              <BoardSquare
-                key={colIndex}
-                odd={(rowIndex + colIndex) % 2 !== 0}
-                square={squareObj}
-                onClick={selectedSquare ? movePiece : select}
-                selectedSquare={selectedSquare}
-                possibleMoves={possibleMoves}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+      <Board
+        board={board}
+        squareHandleClick={selectedSquare ? movePiece : select}
+        selectedSquare={selectedSquare}
+        possibleMoves={possibleMoves}
+      />
+
       <div
         className={`
         absolute 
@@ -215,7 +186,7 @@ export default function GameBoard(props: Props) {
         items-center
         justify-center
         p-2
-        gap-2
+        gap-6
         ${
           showModal
             ? "opacity-100 pointer-events-auto"
@@ -230,27 +201,34 @@ export default function GameBoard(props: Props) {
             </h1>
             <button
               onClick={reset}
-              className="uppercase bg-blue-400 m-2 py-2 px-5 rounded-md"
+              className="uppercase bg-blue-400 m-2 py-2 px-5 rounded-md hover:scale-110 duration-150"
             >
               restart
             </button>
           </div>
-        ) : (
-          piecesToResurrect.map(
-            (piece, i) =>
-              piece?.name !== "Pawn" && (
+        ) : replacementPeace ? (
+          ["Rook", "Knight", "Bishop", "Queen"].map(
+            (name, i) =>
+              name !== "Pawn" && (
                 <div
-                  key={i}
-                  className="h-[15%]"
-                  onClick={() => chooseReplacementPiece(piece)}
+                  key={name}
+                  className="w-[13%] hover:scale-125 duration-200"
+                  onClick={() =>
+                    chooseReplacementPiece({
+                      name,
+                      color: replacementPeace.piece?.color || "black",
+                    })
+                  }
                 >
                   <PeaceIcon
-                    name={piece?.name || "Pawn"}
-                    color={piece?.color || "black"}
+                    name={name || "Pawn"}
+                    color={replacementPeace.piece?.color || "black"}
                   />
                 </div>
               )
           )
+        ) : (
+          ""
         )}
       </div>
     </>

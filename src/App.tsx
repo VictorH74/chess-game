@@ -40,21 +40,6 @@ function App() {
     [deadBlackPiaces, deadWhitePiaces]
   );
 
-  const decrementDeadPieces = useCallback(
-    (piece: TPiece) => {
-      if (!piece) return;
-
-      if (piece.color === "black") {
-        let index = deadBlackPiaces.findIndex((p) => p?.name === piece.name);
-        setDeadBlackPieces((prev) => prev.filter((_, i) => i !== index));
-      } else if (piece.color === "white") {
-        let index = deadWhitePiaces.findIndex((p) => p?.name === piece.name);
-        setDeadWhitePieces((prev) => prev.filter((_, i) => i !== index));
-      }
-    },
-    [deadBlackPiaces, deadWhitePiaces]
-  );
-
   const changeCurrentPlayer = useCallback(() => {
     setCurrentPlayer((prev) => (prev === "white" ? "black" : "white"));
   }, [currentPlayer]);
@@ -90,7 +75,14 @@ function App() {
           @container
         `}
       >
-        <div className="flex @[1020px]:flex-col flex-wrap justify-center px-3">
+        <div className="
+        flex 
+        @[1020px]:flex-col 
+        min-h-[48px] 
+        min-w-[48px] 
+        flex-wrap 
+        justify-center 
+        px-3">
           {deadBlackPiaces.map((piece, i) => (
             <div className="h-12" key={i}>
               <PeaceIcon
@@ -132,7 +124,14 @@ function App() {
           </div>
         </div>
 
-        <div className="flex @[1020px]:flex-col flex-wrap justify-center px-3">
+        <div className="
+        flex @[1020px]:flex-col 
+        flex-wrap 
+        justify-center 
+        px-3
+        min-h-[48px] 
+        min-w-[48px] 
+        ">
           {deadWhitePiaces.map((piece, i) => (
             <div className="h-12" key={i}>
               <PeaceIcon
