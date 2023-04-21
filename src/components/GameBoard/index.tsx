@@ -1,54 +1,53 @@
-import { useEffect, useState } from "react";
-import BoardSquare from "./components/BoardSquare";
+import { useEffect, useState, useCallback } from "react";
+import BoardSquare from "../BoardSquare";
 import { RookPiece } from "@/classes/rook";
 import { KnightPiece } from "@/classes/knight";
 import { PawnPiece } from "@/classes/pawn";
 import { BishopPiece } from "@/classes/bishop";
 import { KingPiece } from "@/classes/king";
 import { QueenPiece } from "@/classes/queen";
-
-const getPiece = (position: TPosition): TPiece => {
-  let { x, y } = position;
-  let color =
-    x === 0 || x === 1 ? "white" : x === 7 || x === 6 ? "black" : undefined;
-
-  if (!color) return null;
-
-  if ((y === 0 || y === 7) && (x === 0 || x === 7))
-    return { color, name: "Rook" };
-  if ((y === 1 || y === 6) && (x === 0 || x === 7))
-    return { color, name: "Knight" };
-  if ((y === 2 || y === 5) && (x === 0 || x === 7))
-    return { color, name: "Bishop" };
-  if (y === 3 && (x === 0 || x === 7)) return { color, name: "Queen" };
-  if (y === 4 && (x === 0 || x === 7)) return { color, name: "King" };
-
-  return { color, name: "Pawn" };
-};
+import PeaceIcon from "../PieceIcon";
+import { getPiecebyPosition } from "@/utils/functions";
 
 const array = Array(8).fill(undefined);
-const initialPosition = array.map((_, x) =>
-  array.map((_, y) => ({
-    position: { x, y },
-    piece: getPiece({ x, y }),
+const initialPositions = array.map((_, row) =>
+  array.map((_, col) => ({
+    position: { row, col },
+    piece: getPiecebyPosition({ row, col }),
   }))
 );
 
 interface Props {
-  screen: "full" | "minimized";
+  currentPlayer: "white" | "black";
+  changeCurrentPlayer: () => void;
+  incrementDeadPieces: (piece: TPiece) => void;
+  deadPiaces: { black: TPiece[]; white: TPiece[] };
+  reset: () => void;
 }
 
 export default function GameBoard(props: Props) {
   const [selectedSquare, setSelectedSquare] = useState<TSquare | null>(null);
-  const [board, setBoard] = useState<TSquare[][]>(initialPosition);
+  const [board, setBoard] = useState<TSquare[][]>(initialPositions);
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState<"white" | "black">(
-    "white"
+  const [replacementPeace, setReplacementPeace] = useState<TSquare | null>(
+    null
   );
+  const [showModal, setShowModal] = useState(false);
+  const [deadPiaces, setDeadPieces] = useState<TPiece[]>([]);
+  const [winner, setWinner] = useState<"white" | "black" | undefined>();
 
-  // useEffect(() => {
-  //   console.log(possibleMoves);
-  // }, [possibleMoves]);
+  useEffect(() => {
+    if (replacementPeace?.piece) {
+      // show modal
+      setShowModal(true);
+      // list dead pieces
+      setDeadPieces(
+        props.deadPiaces[
+          replacementPeace.piece.color as keyof typeof props.deadPiaces
+        ]
+      );
+    }
+  }, [replacementPeace]);
 
   useEffect(() => {
     if (!selectedSquare?.piece) {
@@ -56,7 +55,7 @@ export default function GameBoard(props: Props) {
       return;
     }
 
-    let { x: selectedX, y: selectedY } = selectedSquare.position;
+    let { row: selectedRow, col: selectedCol } = selectedSquare.position;
     let { name, color } = selectedSquare.piece;
 
     let places: string[] = [];
@@ -66,103 +65,192 @@ export default function GameBoard(props: Props) {
     //===========================================================
 
     if (name === "Pawn") {
-      places = PawnPiece.possibleMoves(board, selectedX, selectedY, color);
+      places = PawnPiece.possibleMoves(board, selectedRow, selectedCol, color);
     } else if (name === "Rook") {
-      // y+
-      places = RookPiece.possibleMoves(board, selectedX, selectedY, color);
+      // col+
+      places = RookPiece.possibleMoves(board, selectedRow, selectedCol, color);
     } else if (name === "Knight") {
-      places = KnightPiece.possibleMoves(board, selectedX, selectedY, color);
+      places = KnightPiece.possibleMoves(
+        board,
+        selectedRow,
+        selectedCol,
+        color
+      );
     } else if (name === "Bishop") {
-      places = BishopPiece.possibleMoves(board, selectedX, selectedY, color);
+      places = BishopPiece.possibleMoves(
+        board,
+        selectedRow,
+        selectedCol,
+        color
+      );
     } else if (name === "Queen") {
-      places = QueenPiece.possibleMoves(board, selectedX, selectedY, color);
+      places = QueenPiece.possibleMoves(board, selectedRow, selectedCol, color);
     } else if (name === "King") {
-      places = KingPiece.possibleMoves(board, selectedX, selectedY, color);
+      places = KingPiece.possibleMoves(board, selectedRow, selectedCol, color);
     }
 
     setPossibleMoves(places);
   }, [selectedSquare]);
 
-  const select = (squadObj: TSquare) => {
-    // Check if has some piece on selected square and if the selected piece color is equal to the current player color
-    if (!squadObj.piece || !(currentPlayer === squadObj.piece?.color)) return;
-    setSelectedSquare(squadObj);
+  const chooseReplacementPiece = (piece: TPiece) => {
+    if (!replacementPeace?.piece || !piece) return;
+    let { row, col } = replacementPeace.position;
+    let pos = board;
+    pos[row][col].piece = piece;
+    setReplacementPeace(null);
+    setShowModal(false);
   };
 
-  const movePiece = (squadObj: TSquare) => {
-    let { x, y } = squadObj.position;
+  const select = useCallback(
+    (squadObj: TSquare) => {
+      // Check if has some piece on selected square and if the selected piece color is equal to the current player color
+      if (!squadObj.piece || !(props.currentPlayer === squadObj.piece?.color))
+        return;
+      setSelectedSquare(squadObj);
+    },
+    [selectedSquare]
+  );
 
-    // Check if the current player has selected your piece and click on another piece with the same color
-    if (currentPlayer === squadObj.piece?.color) {
-      select(squadObj);
-      return;
-    }
+  const movePiece = useCallback(
+    (squadObj: TSquare) => {
+      let { row, col } = squadObj.position;
 
-    if (!selectedSquare || !possibleMoves.includes(`${x}-${y}`)) return;
-    if (x === selectedSquare.position.x && y === selectedSquare.position.y) {
+      // Check if the current player has selected your piece and click on another piece with the same color
+      if (props.currentPlayer === squadObj.piece?.color) {
+        select(squadObj);
+        return;
+      }
+
+      if (!selectedSquare || !possibleMoves.includes(`${row}-${col}`)) return;
+      if (
+        row === selectedSquare.position.row &&
+        col === selectedSquare.position.col
+      ) {
+        setSelectedSquare(null);
+        return;
+      }
+
+      let { row: selectedRow, col: selectedCol } = selectedSquare.position;
+      let pos = board;
+
+      if (
+        pos[row][col]?.piece?.color !== selectedSquare?.piece?.color &&
+        pos[row][col]?.piece?.color !== null
+      ) {
+        props.incrementDeadPieces(pos[row][col].piece);
+      }
+
+      if (pos[row][col].piece?.name === "King") {
+        setWinner(selectedSquare.piece?.color as "white" | "black");
+        setShowModal(true);
+      }
+
+      pos[row][col].piece = selectedSquare.piece;
+      pos[selectedRow][selectedCol].piece = null;
+
+      checkPiece(pos[row][col]);
+      setBoard(pos);
       setSelectedSquare(null);
-      return;
+      props.changeCurrentPlayer();
+    },
+    [selectedSquare, possibleMoves]
+  );
+
+  // Check if white or black pawn has reached the end
+  const checkPiece = (square: TSquare) => {
+    let piece = square.piece;
+    if (
+      piece &&
+      ((piece.color === "black" &&
+        piece.name === "Pawn" &&
+        square.position.row === 0) ||
+        (piece.color === "white" &&
+          piece.name === "Pawn" &&
+          square.position.row === 7))
+    ) {
+      setReplacementPeace(square);
     }
+  };
 
-    let { x: selectedX, y: selectedY } = selectedSquare.position;
-    let pos = board;
-
-    pos[x][y].piece = selectedSquare.piece;
-    pos[selectedX][selectedY].piece = null;
-
-    setBoard(pos);
-    setSelectedSquare(null);
-    setCurrentPlayer((prev) => (prev === "white" ? "black" : "white"));
+  const reset = () => {
+    alert("Em desenvolvimento. Use a tecla F5 para recarregar a página 👍")
   };
 
   return (
-    <div
-      className={`
+    <>
+      <div
+        className={`
       h-full
-      aspect-square shadow-xl overflow-hidden rounded-md`}
-    >
-      {board.map((row: TSquare[], rowIndex) => (
-        <div key={rowIndex} className="flex flex-row">
-          {row.map((squareObj: TSquare, colIndex) => (
-            <BoardSquare
-              key={colIndex}
-              odd={(rowIndex + colIndex) % 2 !== 0}
-              square={squareObj}
-              onClick={selectedSquare ? movePiece : select}
-              selectedSquare={selectedSquare}
-              possibleMoves={possibleMoves}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
+      aspect-square shadow-xl overflow-hidden rounded-md
+      `}
+      >
+        {board.map((row: TSquare[], rowIndex) => (
+          <div key={rowIndex} className="flex flex-row">
+            {row.map((squareObj: TSquare, colIndex) => (
+              <BoardSquare
+                key={colIndex}
+                odd={(rowIndex + colIndex) % 2 !== 0}
+                square={squareObj}
+                onClick={selectedSquare ? movePiece : select}
+                selectedSquare={selectedSquare}
+                possibleMoves={possibleMoves}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div
+        className={`
+        absolute 
+        bg-[#00000080] 
+        top-0 
+        bottom-0 
+        left-0 
+        right-0
+        duration-200
+        flex
+        flex-wrap
+        items-center
+        justify-center
+        p-2
+        gap-2
+        ${
+          showModal
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }
+        `}
+      >
+        {winner ? (
+          <div className="text-center uppercase">
+            <h1 className=" @[350px]:text-2xl font-semibold">
+              {winner} player won!!
+            </h1>
+            <button
+              onClick={reset}
+              className="uppercase bg-blue-400 m-2 py-2 px-5 rounded-md"
+            >
+              restart
+            </button>
+          </div>
+        ) : (
+          deadPiaces.map(
+            (piece, i) =>
+              piece?.name !== "Pawn" && (
+                <div
+                  key={i}
+                  className="h-[15%]"
+                  onClick={() => chooseReplacementPiece(piece)}
+                >
+                  <PeaceIcon
+                    name={piece?.name || "Pawn"}
+                    color={piece?.color || "black"}
+                  />
+                </div>
+              )
+          )
+        )}
+      </div>
+    </>
   );
 }
-
-/*
-<div
-      className={`
-      ${
-        props.screen === "full"
-          ? "@[1050px]:h-full "
-          : "@[780px]:h-full @[780px]:max-h-[70%]"
-      } 
-      w-full @[780px]:w-auto
-      aspect-square shadow-xl overflow-hidden rounded-md border-2`}
-    >
-      {board.map((row: TSquare[], rowIndex) => (
-        <div key={rowIndex} className="flex flex-row">
-          {row.map((squareObj: TSquare, colIndex) => (
-            <BoardSquare
-              key={colIndex}
-              odd={(rowIndex + colIndex) % 2 !== 0}
-              square={squareObj}
-              onClick={selectedSquare ? movePiece : select}
-              selectedSquare={selectedSquare}
-              possibleMoves={possibleMoves}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-*/

@@ -1,53 +1,142 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import GameBoard from "./components/GameBoard";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import PeaceIcon from "./components/PieceIcon";
+
+type TScreen = "full" | "minimized";
 
 function App() {
-  const [screen, setScreen] = useState<"full" | "minimized">("minimized");
+  const [screen, setScreen] = useState<TScreen>("minimized");
+  const [currentPlayer, setCurrentPlayer] = useState<"white" | "black">(
+    "white"
+  );
+  const [deadBlackPiaces, setDeadBlackPieces] = useState<TPiece[]>([]);
+  const [deadWhitePiaces, setDeadWhitePieces] = useState<TPiece[]>([]);
 
-  const fullScreen = () => setScreen("full")
+  useEffect(() => {
+    const screenStr = localStorage.getItem("fullScreeChessGame") as TScreen;
+    if (!screenStr) return;
 
-  const minimizedScreen = () => setScreen("minimized")
+    setScreen(screenStr);
+  }, []);
+
+  const reset = () => {
+    setCurrentPlayer("white");
+    setDeadBlackPieces([]);
+    setDeadWhitePieces([]);
+  };
+
+  const incrementDeadPieces = useCallback(
+    (piece: TPiece) => {
+      if (!piece) return;
+
+      if (piece.color === "black") {
+        setDeadBlackPieces((prev) => [...prev, piece]);
+      } else if (piece.color === "white") {
+        setDeadWhitePieces((prev) => [...prev, piece]);
+      }
+    },
+    [deadBlackPiaces, deadWhitePiaces]
+  );
+
+  const changeCurrentPlayer = useCallback(() => {
+    setCurrentPlayer((prev) => (prev === "white" ? "black" : "white"));
+  }, [currentPlayer]);
+
+  const fullScreen = () => {
+    setScreen("full");
+    localStorage.setItem("fullScreeChessGame", "full");
+  };
+
+  const minimizedScreen = () => {
+    setScreen("minimized");
+    localStorage.setItem("fullScreeChessGame", "minimized");
+  };
 
   return (
-    <div className="h-screen flex justify-center items-center @container">
+    <main className="@container">
+      <div className="uppercase absolute mt-3 text-center text-lg left-1/2 z-50 -translate-x-1/2">
+        <p className="font-bold text-blue-400 underline">
+          {currentPlayer} player time
+        </p>
+      </div>
+
       <div
         className={`
-          ${
-            screen === "full"
-              ? "@[1115px]:h-full "
-              : "@[800px]:h-full @[800px]:max-h-[70%]"
-          } 
-          w-full @[800px]:w-auto
-          flex
-          flex-wrap
-          @[950px]:flex-nowrap
-          overflow-auto
+          h-[95vh]
+          @[700px]:h-screen 
+          flex 
+          flex-col
+          gap-2
+          @[1000px]:flex-row
+          items-center 
+          justify-center
+          @container
         `}
       >
-        <GameBoard screen={screen} />
-        <div className="p-2 mx-auto hidden @[800px]:block">
-          {screen === "full" ? (
-            <button onClick={minimizedScreen}>
-              <FullscreenIcon sx={{ fontSize: 55 }} />
-            </button>
-          ) : (
-            <button onClick={fullScreen}>
-              <FullscreenExitIcon sx={{ fontSize: 55 }} />
-            </button>
-          )}
+        <div className="flex @[1020px]:flex-col flex-wrap justify-center px-3">
+          {deadBlackPiaces.map((piece, i) => (
+            <div className="h-12" key={i}>
+              <PeaceIcon
+                name={piece?.name || "Pawn"}
+                color={piece?.color || "black"}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div
+          className={`
+          ${
+            screen === "full"
+              ? "@[1020px]:h-full "
+              : "@[1020px]:h-full @[1020px]:max-h-[70%]"
+          } 
+          w-full @[1020px]:w-auto
+          relative
+        `}
+        >
+          <GameBoard
+            currentPlayer={currentPlayer}
+            changeCurrentPlayer={changeCurrentPlayer}
+            incrementDeadPieces={incrementDeadPieces}
+            deadPiaces={{
+              black: deadBlackPiaces,
+              white: deadWhitePiaces,
+            }}
+            reset={reset}
+          />
+
+          <div className="p-2 mx-auto hidden @[1020px]:block absolute -right-16 top-1">
+            {screen === "full" ? (
+              <button onClick={minimizedScreen}>
+                <FullscreenIcon sx={{ fontSize: 55 }} />
+              </button>
+            ) : (
+              <button onClick={fullScreen}>
+                <FullscreenExitIcon sx={{ fontSize: 55 }} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex @[1020px]:flex-col flex-wrap justify-center px-3">
+          {deadWhitePiaces.map((piece, i) => (
+            <div className="h-12" key={i}>
+              <PeaceIcon
+                name={piece?.name || "Pawn"}
+                color={piece?.color || "black"}
+              />
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+      <footer className="text-center p-4">
+        <p>&copy; Created by Victor Almeida 2023</p>
+      </footer>
+    </main>
   );
 }
 
 export default App;
-
-/*
-<div className="h-screen flex justify-center items-center @container border-2 ">
-      <GameBoard screen={screen} />
-      <div className="border-2 ">SetScreen</div>
-    </div>
-*/

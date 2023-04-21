@@ -8,4 +8,4 @@ type TPiece = {
   name: string;
 } | null;
 
-type TPosition = { x: number; y: number };
+type TPosition = { row: number; col: number };
