@@ -60,8 +60,6 @@ export const getDangerPositions = (
   let { row, col } = square.position;
   let places: string[] = [];
 
-  // places.push(`${row}-${col}`);
-
   // temp
   if (square.piece?.name === "Knight") return places;
 
@@ -94,32 +92,6 @@ export const getDangerPositions = (
       limit = !!currentSquare.piece && currentSquare.piece.name !== "King";
     }
   }
-
-  // let limit: boolean = false;
-  // while (!limit) {
-  //   if (kingPosition.row > square.position.row) {
-  //     row -= 1;
-  //   } else if (kingPosition.row < square.position.row) {
-  //     row += 1;
-  //   }
-
-  //   if (kingPosition.col > square.position.col) {
-  //     col -= 1;
-  //   } else if (kingPosition.col < square.position.col) {
-  //     col += 1;
-  //   }
-  //   places.push(`${row}-${col}`);
-
-  //   let currentSquare = board[row][col];
-
-  //   let { row: currentSquareRow, col: currentSquareCol } =
-  //     currentSquare.position;
-
-  //   limit =
-  //     !!currentSquare.piece &&
-  //     currentSquareRow === row &&
-  //     currentSquareCol === col;
-  // }
 
   return places;
 };
