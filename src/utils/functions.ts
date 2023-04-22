@@ -4,8 +4,13 @@ import { PawnPiece } from "@/classes/pawn";
 import { BishopPiece } from "@/classes/bishop";
 import { KingPiece } from "@/classes/king";
 import { QueenPiece } from "@/classes/queen";
+import { BasePiece, TPieceClass } from "@/classes/base";
+import { TBoard, TPieceColor, TPieceName } from "@/types";
+import { TPosition, TSquare } from "@/components/BoardSquare";
 
-export const getPiecebyPosition = (position: TPosition): TPiece => {
+export const gePieceClassbyPosition = (
+  position: TPosition
+): TPieceClass | null => {
   let { row, col } = position;
   let color: TPieceColor | undefined =
     row === 0 || row === 1
@@ -17,39 +22,29 @@ export const getPiecebyPosition = (position: TPosition): TPiece => {
   if (!color) return null;
 
   if ((col === 0 || col === 7) && (row === 0 || row === 7))
-    return { color, name: "Rook" };
+    return new RookPiece("Rook", color);
   if ((col === 1 || col === 6) && (row === 0 || row === 7))
-    return { color, name: "Knight" };
+    return new KnightPiece("Knight", color);
   if ((col === 2 || col === 5) && (row === 0 || row === 7))
-    return { color, name: "Bishop" };
-  if (col === 3 && (row === 0 || row === 7)) return { color, name: "Queen" };
-  if (col === 4 && (row === 0 || row === 7)) return { color, name: "King" };
+    return new BishopPiece("Bishop", color);
+  if (col === 3 && (row === 0 || row === 7))
+    return new QueenPiece("Queen", color);
+  if (col === 4 && (row === 0 || row === 7))
+    return new KingPiece("King", color);
 
-  return { color, name: "Pawn" };
+  return new PawnPiece("Pawn", color);
 };
 
-export const getPossibleMoves = (
-  pieceName: TPieceName,
-  board: TBoard,
-  selectedRow: number,
-  selectedCol: number,
+export const createPiece = (
+  name: TPieceName,
   color: TPieceColor
-): string[] => {
-  if (pieceName === "Pawn") {
-    return PawnPiece.possibleMoves(board, selectedRow, selectedCol, color);
-  } else if (pieceName === "Rook") {
-    return RookPiece.possibleMoves(board, selectedRow, selectedCol, color);
-  } else if (pieceName === "Knight") {
-    return KnightPiece.possibleMoves(board, selectedRow, selectedCol, color);
-  } else if (pieceName === "Bishop") {
-    return BishopPiece.possibleMoves(board, selectedRow, selectedCol, color);
-  } else if (pieceName === "Queen") {
-    return QueenPiece.possibleMoves(board, selectedRow, selectedCol, color);
-  } else if (pieceName === "King") {
-    return KingPiece.possibleMoves(board, selectedRow, selectedCol, color);
-  } else {
-    return [];
-  }
+): TPieceClass => {
+  if (name === "Rook") return new RookPiece("Rook", color);
+  if (name === "Knight") return new KnightPiece("Rook", color);
+  if (name === "Bishop") return new BishopPiece("Rook", color);
+  if (name === "Queen") return new QueenPiece("Rook", color);
+  if (name === "King") return new KingPiece("Rook", color);
+  return new PawnPiece("Pawn", color);
 };
 
 export const getDangerPositions = (

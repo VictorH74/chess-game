@@ -1,17 +1,18 @@
-type TSquare = {
-  piece: TPiece;
-  position: TPosition;
-};
+import { BasePiece } from "./classes/base";
+
+type TPieceName = "Pawn" | "Rook" | "Knight" | "Bishop" | "Queen" | "King"
+
+type TPieceColor = "black" | "white"
+
+type TBoard = TSquare[][]
 
 type TPiece = {
   color: TPieceColor;
   name: TPieceName;
 } | null;
 
-type TBoard = TSquare[][]
 
-type TPosition = { row: number; col: number };
 
-type TPieceName = "Pawn" | "Rook" | "Knight" | "Bishop" | "Queen" | "King"
 
-type TPieceColor = "black" | "white"
+
+

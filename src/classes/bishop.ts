@@ -1,9 +1,16 @@
-export class BishopPiece {
-  public static possibleMoves(
+import { TPieceColor, TPieceName } from "@/types";
+import { BasePiece } from "./base";
+import { TSquare } from "@/components/BoardSquare";
+
+export class BishopPiece extends BasePiece {
+  constructor(name: TPieceName, color: TPieceColor) {
+    super(name, color);
+  }
+
+  possibleMoves(
     board: TSquare[][],
     selectedRow: number,
     selectedCol: number,
-    color: string
   ) {
     let moves = [];
 
@@ -14,7 +21,7 @@ export class BishopPiece {
       i--, j--
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {
@@ -29,7 +36,7 @@ export class BishopPiece {
       i--, j++
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {
@@ -44,7 +51,7 @@ export class BishopPiece {
       i++, j--
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {
@@ -59,7 +66,7 @@ export class BishopPiece {
       i++, j++
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {

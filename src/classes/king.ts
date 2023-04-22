@@ -1,16 +1,23 @@
-export class KingPiece {
-  public static possibleMoves(
+import { TPieceColor, TPieceName } from "@/types";
+import { BasePiece } from "./base";
+import { TSquare } from "@/components/BoardSquare";
+
+export class KingPiece extends BasePiece {
+  constructor(name: TPieceName, color: TPieceColor) {
+    super(name, color);
+  }
+
+  possibleMoves(
     board: TSquare[][],
     selectedRow: number,
     selectedCol: number,
-    color: string
   ) {
     let moves = [];
 
     // UP
     if (
       selectedRow - 1 >= 0 &&
-      board[selectedRow - 1][selectedCol].piece?.color !== color
+      board[selectedRow - 1][selectedCol].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow - 1}-${selectedCol}`);
     }
@@ -19,7 +26,7 @@ export class KingPiece {
     if (
       selectedRow - 1 >= 0 &&
       selectedCol - 1 >= 0 &&
-      board[selectedRow - 1][selectedCol - 1].piece?.color !== color
+      board[selectedRow - 1][selectedCol - 1].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow - 1}-${selectedCol - 1}`);
     }
@@ -27,7 +34,7 @@ export class KingPiece {
     // LEFT
     if (
       selectedCol - 1 >= 0 &&
-      board[selectedRow][selectedCol - 1].piece?.color !== color
+      board[selectedRow][selectedCol - 1].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow}-${selectedCol - 1}`);
     }
@@ -36,7 +43,7 @@ export class KingPiece {
     if (
       selectedRow + 1 <= 7 &&
       selectedCol - 1 >= 0 &&
-      board[selectedRow + 1][selectedCol - 1].piece?.color !== color
+      board[selectedRow + 1][selectedCol - 1].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow + 1}-${selectedCol - 1}`);
     }
@@ -44,7 +51,7 @@ export class KingPiece {
     // DOWN
     if (
       selectedRow + 1 <= 7 &&
-      board[selectedRow + 1][selectedCol].piece?.color !== color
+      board[selectedRow + 1][selectedCol].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow + 1}-${selectedCol}`);
     }
@@ -53,7 +60,7 @@ export class KingPiece {
     if (
       selectedRow + 1 <= 7 &&
       selectedCol + 1 <= 7 &&
-      board[selectedRow + 1][selectedCol + 1].piece?.color !== color
+      board[selectedRow + 1][selectedCol + 1].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow + 1}-${selectedCol + 1}`);
     }
@@ -61,7 +68,7 @@ export class KingPiece {
     // RIGHT
     if (
       selectedCol + 1 <= 7 &&
-      board[selectedRow][selectedCol + 1].piece?.color !== color
+      board[selectedRow][selectedCol + 1].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow}-${selectedCol + 1}`);
     }
@@ -70,7 +77,7 @@ export class KingPiece {
     if (
       selectedRow - 1 >= 0 &&
       selectedCol + 1 <= 7 &&
-      board[selectedRow - 1][selectedCol + 1].piece?.color !== color
+      board[selectedRow - 1][selectedCol + 1].piece?.color !== this.color
     ) {
       moves.push(`${selectedRow - 1}-${selectedCol + 1}`);
     }

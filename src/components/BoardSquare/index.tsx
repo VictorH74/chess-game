@@ -1,4 +1,12 @@
+import { TPieceClass } from "@/classes/base";
 import PeaceIcon from "@/components/PieceIcon";
+
+export type TSquare = {
+  piece: TPieceClass | null;
+  position: TPosition;
+};
+
+export type TPosition = { row: number; col: number };
 
 interface Props {
   square: TSquare;
@@ -35,12 +43,12 @@ export default function BoardSquare({
         onClick={() => onClick(square)}
         className={`w-full h-full grid place-items-center
       ${
-        dangerPositions.includes(`${row}-${col}`)
-          ? "border-4 border-red-700"
-          : selected
+        selected
           ? "border-4 border-blue-400"
           : possibleMoves.includes(`${row}-${col}`)
           ? "border-4 border-teal-500"
+          : dangerPositions.includes(`${row}-${col}`)
+          ? "border-4 border-red-700"
           : ""
       }
       `}

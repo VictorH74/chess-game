@@ -1,18 +1,25 @@
-export class QueenPiece {
-  public static possibleMoves(
+import { TPieceColor, TPieceName } from "@/types";
+import { BasePiece } from "./base";
+import { TSquare } from "@/components/BoardSquare";
+
+export class QueenPiece extends BasePiece {
+  constructor(name: TPieceName, color: TPieceColor) {
+    super(name, color);
+  }
+
+  possibleMoves(
     board: TSquare[][],
     selectedRow: number,
     selectedCol: number,
-    color: string
   ) {
     let moves = [];
     // RIGHT
     for (let col = selectedCol; col < 7; col++) {
       if (!board[selectedRow][col + 1].piece) {
         moves.push(`${selectedRow}-${col + 1}`);
-      } else if (board[selectedRow][col + 1].piece?.color === color) {
+      } else if (board[selectedRow][col + 1].piece?.color === this.color) {
         break;
-      } else if (board[selectedRow][col + 1].piece?.color !== color) {
+      } else if (board[selectedRow][col + 1].piece?.color !== this.color) {
         moves.push(`${selectedRow}-${col + 1}`);
         break;
       }
@@ -22,9 +29,9 @@ export class QueenPiece {
     for (let col = selectedCol; col > 0; col--) {
       if (!board[selectedRow][col - 1].piece) {
         moves.push(`${selectedRow}-${col - 1}`);
-      } else if (board[selectedRow][col - 1].piece?.color === color) {
+      } else if (board[selectedRow][col - 1].piece?.color === this.color) {
         break;
-      } else if (board[selectedRow][col - 1].piece?.color !== color) {
+      } else if (board[selectedRow][col - 1].piece?.color !== this.color) {
         moves.push(`${selectedRow}-${col - 1}`);
         break;
       }
@@ -34,9 +41,9 @@ export class QueenPiece {
     for (let row = selectedRow; row < 7; row++) {
       if (!board[row + 1][selectedCol].piece) {
         moves.push(`${row + 1}-${selectedCol}`);
-      } else if (board[row + 1][selectedCol].piece?.color === color) {
+      } else if (board[row + 1][selectedCol].piece?.color === this.color) {
         break;
-      } else if (board[row + 1][selectedCol].piece?.color !== color) {
+      } else if (board[row + 1][selectedCol].piece?.color !== this.color) {
         moves.push(`${row + 1}-${selectedCol}`);
         break;
       }
@@ -46,9 +53,9 @@ export class QueenPiece {
     for (let row = selectedRow; row > 0; row--) {
       if (!board[row - 1][selectedCol].piece) {
         moves.push(`${row - 1}-${selectedCol}`);
-      } else if (board[row - 1][selectedCol].piece?.color === color) {
+      } else if (board[row - 1][selectedCol].piece?.color === this.color) {
         break;
-      } else if (board[row - 1][selectedCol].piece?.color !== color) {
+      } else if (board[row - 1][selectedCol].piece?.color !== this.color) {
         moves.push(`${row - 1}-${selectedCol}`);
         break;
       }
@@ -61,7 +68,7 @@ export class QueenPiece {
       i--, j--
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {
@@ -76,7 +83,7 @@ export class QueenPiece {
       i--, j++
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {
@@ -91,7 +98,7 @@ export class QueenPiece {
       i++, j--
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {
@@ -106,7 +113,7 @@ export class QueenPiece {
       i++, j++
     ) {
       const piece = board[i][j].piece;
-      if (piece === null || piece.color !== color) {
+      if (piece === null || piece.color !== this.color) {
         moves.push(`${i}-${j}`);
       }
       if (piece !== null) {

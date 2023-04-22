@@ -3,6 +3,7 @@ import GameBoard from "./components/GameBoard";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import PeaceIcon from "./components/PieceIcon";
+import { TPieceClass } from "./classes/base";
 
 type TScreen = "full" | "minimized";
 
@@ -11,8 +12,8 @@ function App() {
   const [currentPlayer, setCurrentPlayer] = useState<"white" | "black">(
     "white"
   );
-  const [deadBlackPiaces, setDeadBlackPieces] = useState<TPiece[]>([]);
-  const [deadWhitePiaces, setDeadWhitePieces] = useState<TPiece[]>([]);
+  const [deadBlackPiaces, setDeadBlackPieces] = useState<TPieceClass[]>([]);
+  const [deadWhitePiaces, setDeadWhitePieces] = useState<TPieceClass[]>([]);
 
   useEffect(() => {
     const screenStr = localStorage.getItem("fullScreeChessGame") as TScreen;
@@ -28,7 +29,7 @@ function App() {
   };
 
   const incrementDeadPieces = useCallback(
-    (piece: TPiece) => {
+    (piece: TPieceClass) => {
       if (!piece) return;
 
       if (piece.color === "black") {

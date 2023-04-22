@@ -1,4 +1,4 @@
-import BoardSquare from "../BoardSquare";
+import BoardSquare, { TSquare } from "../BoardSquare";
 
 interface Props {
   board: TSquare[][];

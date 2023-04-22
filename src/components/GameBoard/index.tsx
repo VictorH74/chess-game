@@ -1,25 +1,27 @@
 import { useEffect, useState, useCallback } from "react";
 import PeaceIcon from "../PieceIcon";
 import {
+  createPiece,
   getDangerPositions,
-  getPiecebyPosition,
-  getPossibleMoves,
+  gePieceClassbyPosition,
 } from "@/utils/functions";
 import Board from "../Board";
 import { pieceNames } from "@/utils/constants";
+import { TPieceClass } from "@/classes/base";
+import { TSquare } from "../BoardSquare";
 
 const array = Array(8).fill(undefined);
 const initialPositions = array.map((_, row) =>
   array.map((_, col) => ({
     position: { row, col },
-    piece: getPiecebyPosition({ row, col }),
+    piece: gePieceClassbyPosition({ row, col }),
   }))
 );
 
 interface Props {
   currentPlayer: "white" | "black";
   changeCurrentPlayer: () => void;
-  incrementDeadPieces: (piece: TPiece) => void;
+  incrementDeadPieces: (piece: TPieceClass) => void;
   reset: () => void;
 }
 
@@ -48,10 +50,13 @@ export default function GameBoard(props: Props) {
     }
 
     let { row: selectedRow, col: selectedCol } = selectedSquare.position;
-    let { name, color } = selectedSquare.piece;
 
     // PIECE LOGICS =============================================
-    let moves = getPossibleMoves(name, board, selectedRow, selectedCol, color);
+    let moves = selectedSquare.piece.possibleMoves(
+      board,
+      selectedRow,
+      selectedCol
+    );
 
     if (dangerPositions.length > 0 && selectedSquare.piece.name !== "King") {
       let dangerPositionsAfterKingPosition: string[] = [];
@@ -65,10 +70,19 @@ export default function GameBoard(props: Props) {
       moves = moves.filter((m) => dangerPositionsAfterKingPosition.includes(m));
     }
 
+    if (dangerPositions.length > 0 && selectedSquare.piece.name === "King") {
+      let dangerPositionsWithoutFirstPosition = dangerPositions.filter(
+        (_, i) => i !== 0
+      );
+      moves = moves.filter(
+        (m) => !dangerPositionsWithoutFirstPosition.includes(m)
+      );
+    }
+
     setPossibleMoves(moves);
   }, [selectedSquare]);
 
-  const chooseReplacementPiece = (piece: TPiece) => {
+  const chooseReplacementPiece = (piece: TPieceClass) => {
     if (!replacementPeace?.piece || !piece) return;
     let { row, col } = replacementPeace.position;
     let pos = board;
@@ -116,12 +130,14 @@ export default function GameBoard(props: Props) {
 
       let { row: selectedRow, col: selectedCol } = selectedSquare.position;
       let newBoard = board;
+      let piece = newBoard[row][col].piece;
 
       if (
-        newBoard[row][col]?.piece?.color !== selectedSquare?.piece?.color &&
-        newBoard[row][col]?.piece?.color !== null
+        piece &&
+        piece.color !== selectedSquare?.piece?.color &&
+        piece.color !== null
       ) {
-        props.incrementDeadPieces(newBoard[row][col].piece);
+        props.incrementDeadPieces(piece);
       }
 
       if (newBoard[row][col].piece?.name === "King") {
@@ -178,13 +194,9 @@ export default function GameBoard(props: Props) {
     if (!kingPosition) return;
 
     if (
-      getPossibleMoves(
-        piece.name,
-        board,
-        position.row,
-        position.col,
-        piece.color
-      ).includes(`${kingPosition.row}-${kingPosition.col}`)
+      piece
+        .possibleMoves(board, position.row, position.col)
+        .includes(`${kingPosition.row}-${kingPosition.col}`)
     ) {
       // check
       setDangerPositions(getDangerPositions(kingPosition, square, board));
@@ -248,10 +260,12 @@ export default function GameBoard(props: Props) {
                   key={name}
                   className="w-[13%] hover:scale-125 duration-200"
                   onClick={() =>
-                    chooseReplacementPiece({
-                      name,
-                      color: replacementPeace.piece?.color || "black",
-                    })
+                    chooseReplacementPiece(
+                      createPiece(
+                        name,
+                        replacementPeace.piece?.color || "black"
+                      )
+                    )
                   }
                 >
                   <PeaceIcon
