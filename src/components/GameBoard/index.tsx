@@ -1,14 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import BoardSquare from "../BoardSquare";
-import { RookPiece } from "@/classes/rook";
-import { KnightPiece } from "@/classes/knight";
-import { PawnPiece } from "@/classes/pawn";
-import { BishopPiece } from "@/classes/bishop";
-import { KingPiece } from "@/classes/king";
-import { QueenPiece } from "@/classes/queen";
 import PeaceIcon from "../PieceIcon";
-import { getPiecebyPosition } from "@/utils/functions";
+import {
+  getDangerPositions,
+  getPiecebyPosition,
+  getPossibleMoves,
+} from "@/utils/functions";
 import Board from "../Board";
+import { pieceNames } from "@/utils/constants";
 
 const array = Array(8).fill(undefined);
 const initialPositions = array.map((_, row) =>
@@ -34,6 +32,7 @@ export default function GameBoard(props: Props) {
   );
   const [showModal, setShowModal] = useState(false);
   const [winner, setWinner] = useState<"white" | "black" | undefined>();
+  const [dangerPositions, setDangerPositions] = useState<string[]>([]);
 
   useEffect(() => {
     if (replacementPeace?.piece?.color) {
@@ -52,31 +51,21 @@ export default function GameBoard(props: Props) {
     let { name, color } = selectedSquare.piece;
 
     // PIECE LOGICS =============================================
-    if (name === "Pawn") {
-      setPossibleMoves(
-        PawnPiece.possibleMoves(board, selectedRow, selectedCol, color)
-      );
-    } else if (name === "Rook") {
-      setPossibleMoves(
-        RookPiece.possibleMoves(board, selectedRow, selectedCol, color)
-      );
-    } else if (name === "Knight") {
-      setPossibleMoves(
-        KnightPiece.possibleMoves(board, selectedRow, selectedCol, color)
-      );
-    } else if (name === "Bishop") {
-      setPossibleMoves(
-        BishopPiece.possibleMoves(board, selectedRow, selectedCol, color)
-      );
-    } else if (name === "Queen") {
-      setPossibleMoves(
-        QueenPiece.possibleMoves(board, selectedRow, selectedCol, color)
-      );
-    } else if (name === "King") {
-      setPossibleMoves(
-        KingPiece.possibleMoves(board, selectedRow, selectedCol, color)
-      );
+    let moves = getPossibleMoves(name, board, selectedRow, selectedCol, color);
+
+    if (dangerPositions.length > 0 && selectedSquare.piece.name !== "King") {
+      let dangerPositionsAfterKingPosition: string[] = [];
+
+      for (const position of dangerPositions) {
+        let [row, col] = position.split("-");
+        if (board[Number(row)][Number(col)].piece?.name === "King") break;
+        dangerPositionsAfterKingPosition.push(position);
+      }
+
+      moves = moves.filter((m) => dangerPositionsAfterKingPosition.includes(m));
     }
+
+    setPossibleMoves(moves);
   }, [selectedSquare]);
 
   const chooseReplacementPiece = (piece: TPiece) => {
@@ -109,6 +98,14 @@ export default function GameBoard(props: Props) {
       }
 
       if (!selectedSquare || !possibleMoves.includes(`${row}-${col}`)) return;
+
+      if (
+        selectedSquare?.piece?.name === "King" &&
+        dangerPositions.includes(`${row}-${col}`) &&
+        board[row][col].piece === null
+      )
+        return; //
+
       if (
         row === selectedSquare.position.row &&
         col === selectedSquare.position.col
@@ -138,24 +135,60 @@ export default function GameBoard(props: Props) {
       checkPiece(newBoard[row][col]);
       setBoard(newBoard);
       setSelectedSquare(null);
+      if (dangerPositions.length > 0) setDangerPositions([]);
       props.changeCurrentPlayer();
     },
     [selectedSquare, possibleMoves]
   );
 
-  // Check if white or black pawn has reached the end
   const checkPiece = (square: TSquare) => {
-    let piece = square.piece;
+    let { piece, position } = square;
+
+    if (!piece) return;
+
+    // Check if white or black pawn has reached the end
     if (
-      piece &&
-      ((piece.color === "black" &&
+      (piece.color === "black" &&
         piece.name === "Pawn" &&
         square.position.row === 0) ||
-        (piece.color === "white" &&
-          piece.name === "Pawn" &&
-          square.position.row === 7))
+      (piece.color === "white" &&
+        piece.name === "Pawn" &&
+        square.position.row === 7)
     ) {
       setReplacementPeace(square);
+    }
+
+    // Checar se rei do oponente se encontra em alguma dos possiveis movimentos futuro da peça movida
+    let kingPosition;
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        let { piece: tempPiece, position: tempPosition } = board[row][col];
+        if (
+          tempPiece &&
+          piece.color !== tempPiece.color &&
+          tempPiece.name === "King"
+        ) {
+          kingPosition = tempPosition;
+          break;
+        }
+      }
+      if (kingPosition) break;
+    }
+
+    if (!kingPosition) return;
+
+    if (
+      getPossibleMoves(
+        piece.name,
+        board,
+        position.row,
+        position.col,
+        piece.color
+      ).includes(`${kingPosition.row}-${kingPosition.col}`)
+    ) {
+      // check
+      setDangerPositions(getDangerPositions(kingPosition, square, board));
+      setTimeout(() => alert("CHECK!"), 500);
     }
   };
 
@@ -170,6 +203,7 @@ export default function GameBoard(props: Props) {
         squareHandleClick={selectedSquare ? movePiece : select}
         selectedSquare={selectedSquare}
         possibleMoves={possibleMoves}
+        dangerPositions={dangerPositions}
       />
 
       <div
@@ -207,8 +241,8 @@ export default function GameBoard(props: Props) {
             </button>
           </div>
         ) : replacementPeace ? (
-          ["Rook", "Knight", "Bishop", "Queen"].map(
-            (name, i) =>
+          pieceNames.map(
+            (name) =>
               name !== "Pawn" && (
                 <div
                   key={name}

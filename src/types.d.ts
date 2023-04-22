@@ -4,8 +4,14 @@ type TSquare = {
 };
 
 type TPiece = {
-  color: string;
-  name: string;
+  color: TPieceColor;
+  name: TPieceName;
 } | null;
 
+type TBoard = TSquare[][]
+
 type TPosition = { row: number; col: number };
+
+type TPieceName = "Pawn" | "Rook" | "Knight" | "Bishop" | "Queen" | "King"
+
+type TPieceColor = "black" | "white"

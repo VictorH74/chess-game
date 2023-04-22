@@ -5,6 +5,7 @@ interface Props {
   squareHandleClick: (square: TSquare) => void;
   selectedSquare: TSquare | null;
   possibleMoves: string[];
+  dangerPositions: string[];
 }
 
 export default function Board(props: Props) {
@@ -25,6 +26,7 @@ export default function Board(props: Props) {
               onClick={props.squareHandleClick}
               selectedSquare={props.selectedSquare}
               possibleMoves={props.possibleMoves}
+              dangerPositions={props.dangerPositions}
             />
           ))}
         </div>

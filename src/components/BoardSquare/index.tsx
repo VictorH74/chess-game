@@ -5,6 +5,7 @@ interface Props {
   onClick: (square: TSquare) => void;
   selectedSquare: TSquare | null;
   possibleMoves: string[];
+  dangerPositions: string[];
   odd: boolean;
 }
 
@@ -13,12 +14,14 @@ export default function BoardSquare({
   onClick,
   selectedSquare,
   possibleMoves,
+  dangerPositions,
   odd,
 }: Props) {
   const { row, col } = square.position;
 
   const selected =
-    String(selectedSquare?.position.row) + String(selectedSquare?.position.col) ===
+    String(selectedSquare?.position.row) +
+      String(selectedSquare?.position.col) ===
     `${row}${col}`;
 
   return (
@@ -32,7 +35,9 @@ export default function BoardSquare({
         onClick={() => onClick(square)}
         className={`w-full h-full grid place-items-center
       ${
-        selected
+        dangerPositions.includes(`${row}-${col}`)
+          ? "border-4 border-red-700"
+          : selected
           ? "border-4 border-blue-400"
           : possibleMoves.includes(`${row}-${col}`)
           ? "border-4 border-teal-500"
