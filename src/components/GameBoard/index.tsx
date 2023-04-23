@@ -52,7 +52,7 @@ export default function GameBoard(props: Props) {
     let { name: selectedPieceName, color: selectedPieceColor } =
       selectedSquare.piece;
 
-    // PIECE LOGICS =============================================
+    // Retornar possiveis movimentos da peça selecionada
     let moves: string[] = selectedSquare.piece.possibleMoves(
       board,
       selectedRow,
@@ -87,39 +87,33 @@ export default function GameBoard(props: Props) {
         for (let col = 0; col < 8; col++) {
           let { position, piece } = board[row][col];
           if (piece && piece.color !== selectedPieceColor) {
-            if (piece.name === "Pawn") {
-              if (
-                piece.color === "black" &&
-                position.row - 1 >= 0 &&
-                position.col + 1 <= 7
-              ) {
+            if (
+              piece.name === "Pawn" &&
+              piece.color === "black" &&
+              position.row - 1 >= 0
+            ) {
+              if (position.col + 1 <= 7) {
                 opponentPiecesPositions.push(
                   `${position.row - 1}-${position.col + 1}`
                 );
               }
-              if (
-                piece.color === "black" &&
-                position.row - 1 >= 0 &&
-                position.col - 1 >= 0
-              ) {
+              if (position.col - 1 >= 0) {
                 opponentPiecesPositions.push(
                   `${position.row - 1}-${position.col - 1}`
                 );
               }
-              if (
-                piece.color === "white" &&
-                position.row + 1 <= 7 &&
-                position.col + 1 <= 7
-              ) {
+              continue;
+            } else if (
+              piece.name === "Pawn" &&
+              piece.color === "white" &&
+              position.row + 1 <= 7
+            ) {
+              if (position.col + 1 <= 7) {
                 opponentPiecesPositions.push(
                   `${position.row + 1}-${position.col + 1}`
                 );
               }
-              if (
-                piece.color === "white" &&
-                position.row + 1 <= 7 &&
-                position.col - 1 >= 0
-              ) {
+              if (position.col - 1 >= 0) {
                 opponentPiecesPositions.push(
                   `${position.row + 1}-${position.col - 1}`
                 );
@@ -133,6 +127,9 @@ export default function GameBoard(props: Props) {
         }
       }
       moves = moves.filter((m) => !opponentPiecesPositions.includes(m));
+      // Verificar se a peça rei se encontra com 0 movimentos possiveis
+      // if (moves.length === 0) {
+      // }
     }
 
     setPossibleMoves(moves);
@@ -149,7 +146,7 @@ export default function GameBoard(props: Props) {
 
   const select = useCallback(
     (square: TSquare) => {
-      // Check if has some piece on selected square and if the selected piece color is equal to the current player color
+      // Verificar se há peça no quadradro selecionado e se a cor da peça selecionada é igual ao jogador atual
       if (!square.piece || !(props.currentPlayer === square.piece?.color))
         return;
       setSelectedSquare(square);
@@ -160,8 +157,7 @@ export default function GameBoard(props: Props) {
   const movePiece = useCallback(
     (square: TSquare) => {
       let { row, col } = square.position;
-
-      // Check if the current player has selected your piece and click on another piece with the same color
+      // Verificar se o jogador atual selecionou sua peça e clicou em outra peça sua
       if (props.currentPlayer === square.piece?.color) {
         select(square);
         return;
@@ -218,7 +214,7 @@ export default function GameBoard(props: Props) {
 
     if (!piece) return;
 
-    // Check if white or black pawn has reached the end
+    // Verificar se peão branco ou preto chegou a borda do oponente
     if (
       (piece.color === "black" &&
         piece.name === "Pawn" &&
@@ -230,7 +226,7 @@ export default function GameBoard(props: Props) {
       setReplacementPeace(square);
     }
 
-    // Checar se rei do oponente se encontra em alguma dos possiveis movimentos futuro da peça movida
+    // Verificar se rei do oponente se encontra em alguma dos possiveis movimentos futuro da peça movida
     let kingPosition;
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {

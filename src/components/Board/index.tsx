@@ -1,4 +1,5 @@
-import BoardSquare, { TSquare } from "../BoardSquare";
+import { TSquare } from "@/types";
+import BoardSquare from "../BoardSquare";
 
 interface Props {
   board: TSquare[][];
