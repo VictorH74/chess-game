@@ -1,12 +1,6 @@
-import { TPieceClass } from "@/classes/base";
 import PeaceIcon from "@/components/PieceIcon";
+import { TSquare } from "@/types";
 
-export type TSquare = {
-  piece: TPieceClass | null;
-  position: TPosition;
-};
-
-export type TPosition = { row: number; col: number };
 
 interface Props {
   square: TSquare;

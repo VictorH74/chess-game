@@ -3,8 +3,8 @@
 const BishopPieceIcon = ({ color = "black" }) => {
   return (
     <svg
-      width="38"
-      height="76"
+      width="90%"
+      height="90%"
       viewBox="0 0 38 76"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

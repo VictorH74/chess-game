@@ -1,6 +1,5 @@
-import { TSquare } from "@/components/BoardSquare";
 import { BasePiece } from "./base";
-import { TPieceColor, TPieceName } from "@/types";
+import { TPieceColor, TPieceName, TSquare } from "@/types";
 
 export class RookPiece extends BasePiece {
   constructor(name: TPieceName, color: TPieceColor) {

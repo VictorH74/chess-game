@@ -3,7 +3,7 @@ import GameBoard from "./components/GameBoard";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import PeaceIcon from "./components/PieceIcon";
-import { TPieceClass } from "./classes/base";
+import { TPieceClass } from "./types";
 
 type TScreen = "full" | "minimized";
 

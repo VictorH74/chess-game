@@ -7,8 +7,7 @@ import {
 } from "@/utils/functions";
 import Board from "../Board";
 import { pieceNames } from "@/utils/constants";
-import { TPieceClass } from "@/classes/base";
-import { TSquare } from "../BoardSquare";
+import { TPieceClass, TSquare } from "@/types";
 
 const array = Array(8).fill(undefined);
 const initialPositions = array.map((_, row) =>
@@ -50,15 +49,18 @@ export default function GameBoard(props: Props) {
     }
 
     let { row: selectedRow, col: selectedCol } = selectedSquare.position;
+    let { name: selectedPieceName, color: selectedPieceColor } =
+      selectedSquare.piece;
 
     // PIECE LOGICS =============================================
-    let moves = selectedSquare.piece.possibleMoves(
+    let moves: string[] = selectedSquare.piece.possibleMoves(
       board,
       selectedRow,
       selectedCol
     );
 
-    if (dangerPositions.length > 0 && selectedSquare.piece.name !== "King") {
+    if (dangerPositions.length > 1 && selectedPieceName !== "King") {
+      // Uma lista de posições com apenas as posições de risco que estão entre o rei e a peça oponente que causou as posições de dangerPositions
       let dangerPositionsAfterKingPosition: string[] = [];
 
       for (const position of dangerPositions) {
@@ -68,15 +70,69 @@ export default function GameBoard(props: Props) {
       }
 
       moves = moves.filter((m) => dangerPositionsAfterKingPosition.includes(m));
-    }
-
-    if (dangerPositions.length > 0 && selectedSquare.piece.name === "King") {
+    } else if (dangerPositions.length > 0 && selectedPieceName === "King") {
+      // Uma lista de posições de dangerPositions excluindo a posição da peça do oponente que causou as posições de dangerPositions
       let dangerPositionsWithoutFirstPosition = dangerPositions.filter(
         (_, i) => i !== 0
       );
       moves = moves.filter(
         (m) => !dangerPositionsWithoutFirstPosition.includes(m)
       );
+    }
+    if (selectedPieceName === "King") {
+      let opponentPiecesPositions: string[] = [];
+
+      // Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          let { position, piece } = board[row][col];
+          if (piece && piece.color !== selectedPieceColor) {
+            if (piece.name === "Pawn") {
+              if (
+                piece.color === "black" &&
+                position.row - 1 >= 0 &&
+                position.col + 1 <= 7
+              ) {
+                opponentPiecesPositions.push(
+                  `${position.row - 1}-${position.col + 1}`
+                );
+              }
+              if (
+                piece.color === "black" &&
+                position.row - 1 >= 0 &&
+                position.col - 1 >= 0
+              ) {
+                opponentPiecesPositions.push(
+                  `${position.row - 1}-${position.col - 1}`
+                );
+              }
+              if (
+                piece.color === "white" &&
+                position.row + 1 <= 7 &&
+                position.col + 1 <= 7
+              ) {
+                opponentPiecesPositions.push(
+                  `${position.row + 1}-${position.col + 1}`
+                );
+              }
+              if (
+                piece.color === "white" &&
+                position.row + 1 <= 7 &&
+                position.col - 1 >= 0
+              ) {
+                opponentPiecesPositions.push(
+                  `${position.row + 1}-${position.col - 1}`
+                );
+              }
+              continue;
+            }
+            opponentPiecesPositions.push(
+              ...piece.possibleMoves(board, position.row, position.col)
+            );
+          }
+        }
+      }
+      moves = moves.filter((m) => !opponentPiecesPositions.includes(m));
     }
 
     setPossibleMoves(moves);
@@ -199,8 +255,8 @@ export default function GameBoard(props: Props) {
         .includes(`${kingPosition.row}-${kingPosition.col}`)
     ) {
       // check
+      console.log("Cheeck");
       setDangerPositions(getDangerPositions(kingPosition, square, board));
-      setTimeout(() => alert("CHECK!"), 500);
     }
   };
 

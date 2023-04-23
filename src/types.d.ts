@@ -1,18 +1,33 @@
 import { BasePiece } from "./classes/base";
+import { BishopPiece } from "./classes/bishop";
+import { KingPiece } from "./classes/king";
+import { KnightPiece } from "./classes/knight";
+import { PawnPiece } from "./classes/pawn";
+import { QueenPiece } from "./classes/queen";
+import { RookPiece } from "./classes/rook";
 
-type TPieceName = "Pawn" | "Rook" | "Knight" | "Bishop" | "Queen" | "King"
+type TSquare = {
+  piece: TPieceClass | null;
+  position: TPosition;
+};
 
-type TPieceColor = "black" | "white"
+type TPosition = { row: number; col: number };
 
-type TBoard = TSquare[][]
+type TPieceClass =
+  | RookPiece
+  | KnightPiece
+  | BishopPiece
+  | QueenPiece
+  | KingPiece
+  | PawnPiece;
+
+type TPieceName = "Pawn" | "Rook" | "Knight" | "Bishop" | "Queen" | "King";
+
+type TPieceColor = "black" | "white";
+
+type TBoard = TSquare[][];
 
 type TPiece = {
   color: TPieceColor;
   name: TPieceName;
 } | null;
-
-
-
-
-
-

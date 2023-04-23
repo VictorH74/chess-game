@@ -4,9 +4,7 @@ import { PawnPiece } from "@/classes/pawn";
 import { BishopPiece } from "@/classes/bishop";
 import { KingPiece } from "@/classes/king";
 import { QueenPiece } from "@/classes/queen";
-import { BasePiece, TPieceClass } from "@/classes/base";
-import { TBoard, TPieceColor, TPieceName } from "@/types";
-import { TPosition, TSquare } from "@/components/BoardSquare";
+import { TBoard, TPieceClass, TPieceColor, TPieceName, TPosition, TSquare } from "@/types";
 
 export const gePieceClassbyPosition = (
   position: TPosition
@@ -56,11 +54,10 @@ export const getDangerPositions = (
   let places: string[] = [];
 
   // temp
-  if (square.piece?.name === "Knight") return places;
-
-  // if (square.piece?.name === "Pawn") return places;
-
-  // if (square.piece?.name === "King") return places;
+  if (square.piece && ["Knight", "Pawn", "King"].includes(square.piece?.name)) {
+    places.push(`${kingPosition.row}-${kingPosition.col}`)
+    return places;
+  }
 
   // Queen - Bishop - Rook
   let limit: boolean = false;
