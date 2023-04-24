@@ -213,6 +213,8 @@ export default function GameBoard(props: Props) {
     let [row, col] = opponenteKingPosition.split("-");
     let opponentKingPiece = board[Number(row)][Number(col)].piece;
 
+    let hasDangerPositions = false;
+
     // Verificar se peça movimentada deu check no rei oponente
     if (
       piece
@@ -226,6 +228,7 @@ export default function GameBoard(props: Props) {
           board
         )
       );
+      hasDangerPositions = true;
     }
 
     if (!opponentKingPiece) return;
@@ -238,6 +241,7 @@ export default function GameBoard(props: Props) {
     );
     if (
       opponentKingPieceMoves.length > 0 &&
+      hasDangerPositions &&
       opponentKingPieceMoves.filter(
         (m) => !opponentPieceAttackingPositions(board, currentColor).includes(m)
       ).length === 0
