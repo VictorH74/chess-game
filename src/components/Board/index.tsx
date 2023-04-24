@@ -12,10 +12,7 @@ interface Props {
 export default function Board(props: Props) {
   return (
     <div
-      className={`
-      h-full
-      aspect-square shadow-xl overflow-hidden rounded-md
-      `}
+      className={`h-full aspect-square shadow-xl overflow-hidden rounded-md`}
     >
       {props.board.map((row: TSquare[], rowIndex) => (
         <div key={rowIndex} className="flex flex-row">

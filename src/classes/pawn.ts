@@ -14,10 +14,12 @@ export class PawnPiece extends BasePiece {
   ): string[] {
     let moves = [];
 
-    if ( // Check if the pawn front is there not piece
+    if (
+      // Check if the pawn front is there not piece
       (this.color === "black" ? selectedRow > 0 : selectedRow < 7) &&
-      board[this.color === "black" ? selectedRow - 1 : selectedRow + 1][selectedCol]
-        .piece === null
+      board[this.color === "black" ? selectedRow - 1 : selectedRow + 1][
+        selectedCol
+      ].piece === null
     ) {
       moves.push(
         `${
@@ -25,22 +27,12 @@ export class PawnPiece extends BasePiece {
         }-${selectedCol}`
       );
 
-      // Check if the WHITE pawn still not make the first moviment
-      if (this.color === "white" && selectedRow === 1) {
+      // Verificar se peão não fez seu primeiro movimento
+      if (selectedRow === (this.color === "white" ? 1 : 6)) {
         moves.push(
           ...this.possibleMoves(
             board,
-            selectedRow + 1,
-            selectedCol,
-            true
-          )
-        );
-        // Check if the BLACK pawn still not make the first moviment
-      } else if (this.color === "black" && selectedRow === 6) {
-        moves.push(
-          ...this.possibleMoves(
-            board,
-            selectedRow - 1,
+            this.color === "white" ? selectedRow + 1 : selectedRow - 1,
             selectedCol,
             true
           )

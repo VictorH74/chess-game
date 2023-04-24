@@ -6,79 +6,22 @@ export class KingPiece extends BasePiece {
     super(name, color);
   }
 
-  possibleMoves(
-    board: TSquare[][],
-    selectedRow: number,
-    selectedCol: number,
-  ) {
+  possibleMoves(board: TSquare[][], selectedRow: number, selectedCol: number) {
     let moves = [];
 
-    // UP
-    if (
-      selectedRow - 1 >= 0 &&
-      board[selectedRow - 1][selectedCol].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow - 1}-${selectedCol}`);
-    }
+    const directions = [-1, 0, 1];
 
-    // UP LEFT
-    if (
-      selectedRow - 1 >= 0 &&
-      selectedCol - 1 >= 0 &&
-      board[selectedRow - 1][selectedCol - 1].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow - 1}-${selectedCol - 1}`);
-    }
-
-    // LEFT
-    if (
-      selectedCol - 1 >= 0 &&
-      board[selectedRow][selectedCol - 1].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow}-${selectedCol - 1}`);
-    }
-
-    // DOWN LEFT
-    if (
-      selectedRow + 1 <= 7 &&
-      selectedCol - 1 >= 0 &&
-      board[selectedRow + 1][selectedCol - 1].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow + 1}-${selectedCol - 1}`);
-    }
-
-    // DOWN
-    if (
-      selectedRow + 1 <= 7 &&
-      board[selectedRow + 1][selectedCol].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow + 1}-${selectedCol}`);
-    }
-
-    // DOWN RIGHT
-    if (
-      selectedRow + 1 <= 7 &&
-      selectedCol + 1 <= 7 &&
-      board[selectedRow + 1][selectedCol + 1].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow + 1}-${selectedCol + 1}`);
-    }
-
-    // RIGHT
-    if (
-      selectedCol + 1 <= 7 &&
-      board[selectedRow][selectedCol + 1].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow}-${selectedCol + 1}`);
-    }
-
-    // UP RIGHT
-    if (
-      selectedRow - 1 >= 0 &&
-      selectedCol + 1 <= 7 &&
-      board[selectedRow - 1][selectedCol + 1].piece?.color !== this.color
-    ) {
-      moves.push(`${selectedRow - 1}-${selectedCol + 1}`);
+    for (const rowDirection of directions) {
+      for (const colDirection of directions) {
+        if (rowDirection === 0 && colDirection === 0) continue; // posição atual, não adiciona movimento
+        const newRow = selectedRow + rowDirection;
+        const newCol = selectedCol + colDirection;
+        if (newRow < 0 || newRow > 7 || newCol < 0 || newCol > 7) continue; // fora do tabuleiro
+        const piece = board[newRow][newCol].piece;
+        if (!piece || piece.color !== this.color) {
+          moves.push(`${newRow}-${newCol}`);
+        }
+      }
     }
 
     return moves;

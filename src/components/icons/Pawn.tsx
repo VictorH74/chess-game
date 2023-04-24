@@ -1,7 +1,7 @@
 const PawnPieceIcon = ({ color = "black" }) => {
   return (
     <svg
-      width="90%"
+      width="100%"
       height="90%"
       viewBox="0 0 47 76"
       fill="none"

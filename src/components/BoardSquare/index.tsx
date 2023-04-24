@@ -28,24 +28,11 @@ export default function BoardSquare({
 
   return (
     <div
-      className={`
-      w-full aspect-square border-[1px] border-[#292929]
-      ${odd ? "bg-[#858585]" : "bg-[#292929]"} 
-      `}
+      className={`w-full aspect-square border-[1px] border-[#292929] ${odd ? "bg-[#858585]" : "bg-[#292929]"} `}
     >
       <div
         onClick={() => onClick(square)}
-        className={`w-full h-full grid place-items-center
-      ${
-        selected
-          ? "border-4 border-blue-400"
-          : possibleMoves.includes(`${row}-${col}`)
-          ? "border-4 border-teal-500"
-          : dangerPositions.includes(`${row}-${col}`)
-          ? "border-4 border-red-700"
-          : ""
-      }
-      `}
+        className={`w-full h-full grid place-items-center ${selected?"border-4 border-blue-400":possibleMoves.includes(`${row}-${col}`)?"border-4 border-teal-500":dangerPositions.includes(`${row}-${col}`)?"border-4 border-red-700": ""}`}
       >
         {square.piece?.name && square.piece?.color && (
           <PeaceIcon

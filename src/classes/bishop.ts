@@ -10,18 +10,23 @@ export class BishopPiece extends BasePiece {
     board: TSquare[][],
     selectedRow: number,
     selectedCol: number,
+    includeLastSameColor?: boolean
   ) {
     let moves = [];
 
     // Check board on upper-left diagonal
     for (
-      let i = selectedRow - 1, j = selectedCol - 1;
-      i >= 0 && j >= 0;
-      i--, j--
+      let row = selectedRow - 1, col = selectedCol - 1;
+      row >= 0 && col >= 0;
+      row--, col--
     ) {
-      const piece = board[i][j].piece;
-      if (piece === null || piece.color !== this.color) {
-        moves.push(`${i}-${j}`);
+      const piece = board[row][col].piece;
+      if (
+        piece === null ||
+        piece.color !== this.color ||
+        (piece.color === this.color && includeLastSameColor)
+      ) {
+        moves.push(`${row}-${col}`);
       }
       if (piece !== null) {
         break;
@@ -30,13 +35,17 @@ export class BishopPiece extends BasePiece {
 
     // Check board on upper-right diagonal
     for (
-      let i = selectedRow - 1, j = selectedCol + 1;
-      i >= 0 && j < 8;
-      i--, j++
+      let row = selectedRow - 1, col = selectedCol + 1;
+      row >= 0 && col < 8;
+      row--, col++
     ) {
-      const piece = board[i][j].piece;
-      if (piece === null || piece.color !== this.color) {
-        moves.push(`${i}-${j}`);
+      const piece = board[row][col].piece;
+      if (
+        piece === null ||
+        piece.color !== this.color ||
+        (piece.color === this.color && includeLastSameColor)
+      ) {
+        moves.push(`${row}-${col}`);
       }
       if (piece !== null) {
         break;
@@ -45,13 +54,17 @@ export class BishopPiece extends BasePiece {
 
     // Check board on lower-left diagonal
     for (
-      let i = selectedRow + 1, j = selectedCol - 1;
-      i < 8 && j >= 0;
-      i++, j--
+      let row = selectedRow + 1, col = selectedCol - 1;
+      row < 8 && col >= 0;
+      row++, col--
     ) {
-      const piece = board[i][j].piece;
-      if (piece === null || piece.color !== this.color) {
-        moves.push(`${i}-${j}`);
+      const piece = board[row][col].piece;
+      if (
+        piece === null ||
+        piece.color !== this.color ||
+        (piece.color === this.color && includeLastSameColor)
+      ) {
+        moves.push(`${row}-${col}`);
       }
       if (piece !== null) {
         break;
@@ -60,13 +73,17 @@ export class BishopPiece extends BasePiece {
 
     // Check board on lower-right diagonal
     for (
-      let i = selectedRow + 1, j = selectedCol + 1;
-      i < 8 && j < 8;
-      i++, j++
+      let row = selectedRow + 1, col = selectedCol + 1;
+      row < 8 && col < 8;
+      row++, col++
     ) {
-      const piece = board[i][j].piece;
-      if (piece === null || piece.color !== this.color) {
-        moves.push(`${i}-${j}`);
+      const piece = board[row][col].piece;
+      if (
+        piece === null ||
+        piece.color !== this.color ||
+        (piece.color === this.color && includeLastSameColor)
+      ) {
+        moves.push(`${row}-${col}`);
       }
       if (piece !== null) {
         break;

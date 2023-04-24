@@ -10,56 +10,62 @@ export class RookPiece extends BasePiece {
     board: TSquare[][],
     selectedRow: number,
     selectedCol: number,
+    includeLastSameColor?: boolean
   ) {
     let moves = [];
 
     // RIGHT
     for (let col = selectedCol; col < 7; col++) {
-      if (!board[selectedRow][col + 1].piece) {
+      if (
+        !board[selectedRow][col + 1].piece ||
+        board[selectedRow][col + 1].piece?.color !== this.color ||
+        (board[selectedRow][col + 1].piece?.color === this.color &&
+          includeLastSameColor)
+      )
         moves.push(`${selectedRow}-${col + 1}`);
-      } else if (board[selectedRow][col + 1].piece?.color === this.color) {
-        break;
-      } else if (board[selectedRow][col + 1].piece?.color !== this.color) {
-        moves.push(`${selectedRow}-${col + 1}`);
-        break;
-      }
+      if (!board[selectedRow][col + 1].piece) continue;
+      break;
     }
 
     // LEFT
     for (let col = selectedCol; col > 0; col--) {
-      if (!board[selectedRow][col - 1].piece) {
+      if (
+        !board[selectedRow][col - 1].piece ||
+        board[selectedRow][col - 1].piece?.color !== this.color ||
+        (board[selectedRow][col - 1].piece?.color === this.color &&
+          includeLastSameColor)
+      )
         moves.push(`${selectedRow}-${col - 1}`);
-      } else if (board[selectedRow][col - 1].piece?.color === this.color) {
-        break;
-      } else if (board[selectedRow][col - 1].piece?.color !== this.color) {
-        moves.push(`${selectedRow}-${col - 1}`);
-        break;
-      }
+      if (!board[selectedRow][col - 1].piece) continue;
+      break;
     }
 
     // UP
     for (let row = selectedRow; row < 7; row++) {
-      if (!board[row + 1][selectedCol].piece) {
+      if (
+        !board[row + 1][selectedCol].piece ||
+        board[row + 1][selectedCol].piece?.color !== this.color ||
+        (board[row + 1][selectedCol].piece?.color === this.color &&
+          includeLastSameColor)
+      )
         moves.push(`${row + 1}-${selectedCol}`);
-      } else if (board[row + 1][selectedCol].piece?.color === this.color) {
-        break;
-      } else if (board[row + 1][selectedCol].piece?.color !== this.color) {
-        moves.push(`${row + 1}-${selectedCol}`);
-        break;
-      }
+      if (!board[row + 1][selectedCol].piece) continue;
+      break;
     }
 
     // DOWN
     for (let row = selectedRow; row > 0; row--) {
-      if (!board[row - 1][selectedCol].piece) {
+      if (
+        !board[row - 1][selectedCol].piece ||
+        board[row - 1][selectedCol].piece?.color !== this.color ||
+        (board[row - 1][selectedCol].piece?.color === this.color &&
+          includeLastSameColor)
+      )
         moves.push(`${row - 1}-${selectedCol}`);
-      } else if (board[row - 1][selectedCol].piece?.color === this.color) {
-        break;
-      } else if (board[row - 1][selectedCol].piece?.color !== this.color) {
-        moves.push(`${row - 1}-${selectedCol}`);
-        break;
-      }
+      if (!board[row - 1][selectedCol].piece) continue;
+      break;
     }
+
     return moves;
   }
 }

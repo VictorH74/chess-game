@@ -4,10 +4,12 @@ import {
   createPiece,
   getDangerPositions,
   gePieceClassbyPosition,
+  opponentPieceAttackingPositions,
 } from "@/utils/functions";
 import Board from "../Board";
 import { pieceNames } from "@/utils/constants";
 import { TPieceClass, TSquare } from "@/types";
+import { TPieceColor } from "@/types";
 
 const array = Array(8).fill(undefined);
 const initialPositions = array.map((_, row) =>
@@ -18,7 +20,7 @@ const initialPositions = array.map((_, row) =>
 );
 
 interface Props {
-  currentPlayer: "white" | "black";
+  currentPlayer: TPieceColor;
   changeCurrentPlayer: () => void;
   incrementDeadPieces: (piece: TPieceClass) => void;
   reset: () => void;
@@ -32,8 +34,12 @@ export default function GameBoard(props: Props) {
     null
   );
   const [showModal, setShowModal] = useState(false);
-  const [winner, setWinner] = useState<"white" | "black" | undefined>();
+  const [winner, setWinner] = useState<TPieceColor | undefined>();
   const [dangerPositions, setDangerPositions] = useState<string[]>([]);
+  const [kingPosition, setKingPosition] = useState({
+    white: "0-4",
+    black: "7-4",
+  });
 
   useEffect(() => {
     if (replacementPeace?.piece?.color) {
@@ -42,6 +48,8 @@ export default function GameBoard(props: Props) {
     }
   }, [replacementPeace]);
 
+  // Efeito para o state "selectedSquare"
+  // para determinar possiveis movimentos da peça selecionada
   useEffect(() => {
     if (!selectedSquare?.piece) {
       setPossibleMoves([]);
@@ -59,7 +67,7 @@ export default function GameBoard(props: Props) {
       selectedCol
     );
 
-    if (dangerPositions.length > 1 && selectedPieceName !== "King") {
+    if (dangerPositions.length > 0 && selectedPieceName !== "King") {
       // Uma lista de posições com apenas as posições de risco que estão entre o rei e a peça oponente que causou as posições de dangerPositions
       let dangerPositionsAfterKingPosition: string[] = [];
 
@@ -70,66 +78,32 @@ export default function GameBoard(props: Props) {
       }
 
       moves = moves.filter((m) => dangerPositionsAfterKingPosition.includes(m));
-    } else if (dangerPositions.length > 0 && selectedPieceName === "King") {
-      // Uma lista de posições de dangerPositions excluindo a posição da peça do oponente que causou as posições de dangerPositions
-      let dangerPositionsWithoutFirstPosition = dangerPositions.filter(
-        (_, i) => i !== 0
-      );
-      moves = moves.filter(
-        (m) => !dangerPositionsWithoutFirstPosition.includes(m)
-      );
-    }
-    if (selectedPieceName === "King") {
-      let opponentPiecesPositions: string[] = [];
+    } else if (selectedPieceName === "King") {
+      console.log("moves", moves);
+      if (dangerPositions.length > 0) {
+        // Uma lista de posições de dangerPositions excluindo a posição da peça do oponente que causou as posições de dangerPositions
+        let dangerPositionsWithoutFirstPosition = dangerPositions.filter(
+          (_, i) => i !== 0
+        );
+        moves = moves.filter(
+          (m) => !dangerPositionsWithoutFirstPosition.includes(m)
+        );
+        console.log(
+          "moves excluding danger positions without the first",
+          moves
+        );
+      }
 
       // Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          let { position, piece } = board[row][col];
-          if (piece && piece.color !== selectedPieceColor) {
-            if (
-              piece.name === "Pawn" &&
-              piece.color === "black" &&
-              position.row - 1 >= 0
-            ) {
-              if (position.col + 1 <= 7) {
-                opponentPiecesPositions.push(
-                  `${position.row - 1}-${position.col + 1}`
-                );
-              }
-              if (position.col - 1 >= 0) {
-                opponentPiecesPositions.push(
-                  `${position.row - 1}-${position.col - 1}`
-                );
-              }
-              continue;
-            } else if (
-              piece.name === "Pawn" &&
-              piece.color === "white" &&
-              position.row + 1 <= 7
-            ) {
-              if (position.col + 1 <= 7) {
-                opponentPiecesPositions.push(
-                  `${position.row + 1}-${position.col + 1}`
-                );
-              }
-              if (position.col - 1 >= 0) {
-                opponentPiecesPositions.push(
-                  `${position.row + 1}-${position.col - 1}`
-                );
-              }
-              continue;
-            }
-            opponentPiecesPositions.push(
-              ...piece.possibleMoves(board, position.row, position.col)
-            );
-          }
-        }
-      }
+      let opponentPiecesPositions: string[] = opponentPieceAttackingPositions(
+        board,
+        selectedPieceColor
+      );
       moves = moves.filter((m) => !opponentPiecesPositions.includes(m));
+      console.log("moves excluding opponent pieces positions", moves);
+
       // Verificar se a peça rei se encontra com 0 movimentos possiveis
-      // if (moves.length === 0) {
-      // }
+      // if (moves.length === 0) {...}
     }
 
     setPossibleMoves(moves);
@@ -155,52 +129,61 @@ export default function GameBoard(props: Props) {
   );
 
   const movePiece = useCallback(
-    (square: TSquare) => {
-      let { row, col } = square.position;
+    (chosenSquare: TSquare) => {
+      if (!selectedSquare) return;
+
+      const { row: chosenRow, col: chosenCol } = chosenSquare.position;
+      const { row: selectedRow, col: selectedCol } = selectedSquare.position;
+      const selectedPiece = selectedSquare.piece;
+
       // Verificar se o jogador atual selecionou sua peça e clicou em outra peça sua
-      if (props.currentPlayer === square.piece?.color) {
-        select(square);
+      if (props.currentPlayer === chosenSquare.piece?.color) {
+        select(chosenSquare);
         return;
       }
 
-      if (!selectedSquare || !possibleMoves.includes(`${row}-${col}`)) return;
+      // Peça selecionada não se moverá para o quadrado selecionado se não tiver possiveis movimentos
+      if (!possibleMoves.includes(`${chosenRow}-${chosenCol}`)) return;
 
       if (
-        selectedSquare?.piece?.name === "King" &&
-        dangerPositions.includes(`${row}-${col}`) &&
-        board[row][col].piece === null
+        selectedPiece?.name === "King" &&
+        dangerPositions.includes(`${chosenRow}-${chosenCol}`) &&
+        board[chosenRow][chosenCol].piece === null
       )
         return; //
 
-      if (
-        row === selectedSquare.position.row &&
-        col === selectedSquare.position.col
-      ) {
+      if (chosenRow === selectedRow && chosenCol === selectedCol) {
         setSelectedSquare(null);
         return;
       }
 
-      let { row: selectedRow, col: selectedCol } = selectedSquare.position;
       let newBoard = board;
-      let piece = newBoard[row][col].piece;
+      let chosenSquarePiece = newBoard[chosenRow][chosenCol].piece;
 
       if (
-        piece &&
-        piece.color !== selectedSquare?.piece?.color &&
-        piece.color !== null
+        chosenSquarePiece &&
+        chosenSquarePiece.color !== selectedPiece?.color &&
+        chosenSquarePiece.color !== null
       ) {
-        props.incrementDeadPieces(piece);
+        props.incrementDeadPieces(chosenSquarePiece);
       }
 
-      if (newBoard[row][col].piece?.name === "King") {
-        setWinner(selectedSquare.piece?.color as "white" | "black");
-        setShowModal(true);
+      if (chosenSquarePiece?.name === "King") {
+        defineWinner(selectedPiece?.color as TPieceColor);
       }
 
-      newBoard[row][col].piece = selectedSquare.piece;
+      newBoard[chosenRow][chosenCol].piece = selectedPiece;
       newBoard[selectedRow][selectedCol].piece = null;
 
-      checkPiece(newBoard[row][col]);
+      // atualizar posição do rei
+      if (selectedPiece?.name === "King") {
+        setKingPosition((prev) => ({
+          ...prev,
+          [selectedPiece.color]: `${chosenRow}-${chosenCol}`,
+        }));
+      }
+
+      checkPiece(newBoard[chosenRow][chosenCol]);
       setBoard(newBoard);
       setSelectedSquare(null);
       if (dangerPositions.length > 0) setDangerPositions([]);
@@ -211,49 +194,62 @@ export default function GameBoard(props: Props) {
 
   const checkPiece = (square: TSquare) => {
     let { piece, position } = square;
-
     if (!piece) return;
 
     // Verificar se peão branco ou preto chegou a borda do oponente
     if (
-      (piece.color === "black" &&
-        piece.name === "Pawn" &&
-        square.position.row === 0) ||
-      (piece.color === "white" &&
-        piece.name === "Pawn" &&
-        square.position.row === 7)
+      piece.name === "Pawn" &&
+      square.position.row === (piece.color === "black" ? 0 : 7)
     ) {
       setReplacementPeace(square);
     }
 
     // Verificar se rei do oponente se encontra em alguma dos possiveis movimentos futuro da peça movida
-    let kingPosition;
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        let { piece: tempPiece, position: tempPosition } = board[row][col];
-        if (
-          tempPiece &&
-          piece.color !== tempPiece.color &&
-          tempPiece.name === "King"
-        ) {
-          kingPosition = tempPosition;
-          break;
-        }
-      }
-      if (kingPosition) break;
-    }
+    // let kingPosition = getOpponentKingPosition(board, piece.color);
+    let currentColor: TPieceColor = piece.color === "white" ? "black" : "white";
+    let opponenteKingPosition =
+      kingPosition[currentColor as keyof typeof kingPosition];
 
-    if (!kingPosition) return;
+    let [row, col] = opponenteKingPosition.split("-");
+    let opponentKingPiece = board[Number(row)][Number(col)].piece;
 
+    // Verificar se peça movimentada deu check no rei oponente
     if (
       piece
         .possibleMoves(board, position.row, position.col)
-        .includes(`${kingPosition.row}-${kingPosition.col}`)
+        .includes(opponenteKingPosition)
     ) {
-      // check
-      console.log("Cheeck");
-      setDangerPositions(getDangerPositions(kingPosition, square, board));
+      setDangerPositions(
+        getDangerPositions(
+          { row: Number(row), col: Number(col) },
+          square,
+          board
+        )
+      );
     }
+
+    if (!opponentKingPiece) return;
+
+    // Verificar se rei oponente não há possiveis movimento. caso resolvido, checkmate
+    let opponentKingPieceMoves = opponentKingPiece.possibleMoves(
+      board,
+      Number(row),
+      Number(col)
+    );
+    if (
+      opponentKingPieceMoves.length > 0 &&
+      opponentKingPieceMoves.filter(
+        (m) => !opponentPieceAttackingPositions(board, currentColor).includes(m)
+      ).length === 0
+    ) {
+      defineWinner(piece.color);
+      return;
+    }
+  };
+
+  const defineWinner = (color: TPieceColor) => {
+    setWinner(color);
+    setShowModal(true);
   };
 
   const reset = () => {
@@ -271,26 +267,11 @@ export default function GameBoard(props: Props) {
       />
 
       <div
-        className={`
-        absolute 
-        bg-[#00000030] 
-        top-0 
-        bottom-0 
-        left-0 
-        right-0
-        duration-200
-        flex
-        flex-wrap
-        items-center
-        justify-center
-        p-2
-        gap-6
-        ${
+        className={`absolute bg-[#00000030] inset-0 duration-200 flex flex-wrap items-center justify-center p-2 gap-6 ${
           showModal
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-        }
-        `}
+        }`}
       >
         {winner ? (
           <div className="text-center uppercase">
