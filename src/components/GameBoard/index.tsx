@@ -8,8 +8,9 @@ import {
 } from "@/utils/functions";
 import Board from "../Board";
 import { pieceNames } from "@/utils/constants";
-import { TPieceClass, TSquare } from "@/types";
+import { TPieceClass, TPieceName, TSquare } from "@/types";
 import { TPieceColor } from "@/types";
+import { ChessSound } from "@/classes/sound";
 
 const array = Array(8).fill(undefined);
 const initialPositions = array.map((_, row) =>
@@ -79,31 +80,32 @@ export default function GameBoard(props: Props) {
 
       moves = moves.filter((m) => dangerPositionsAfterKingPosition.includes(m));
     } else if (selectedPieceName === "King") {
-      console.log("moves", moves);
+      // console.log("moves", moves);
       if (dangerPositions.length > 0) {
-        // Uma lista de posições de dangerPositions excluindo a posição da peça do oponente que causou as posições de dangerPositions
+        /*
+        Uma lista de posições de dangerPositions excluindo a posição da peça do oponente que causou as posições de dangerPositions 
+        */
         let dangerPositionsWithoutFirstPosition = dangerPositions.filter(
           (_, i) => i !== 0
         );
         moves = moves.filter(
           (m) => !dangerPositionsWithoutFirstPosition.includes(m)
         );
-        console.log(
-          "moves excluding danger positions without the first",
-          moves
-        );
+        // console.log(
+        //   "moves excluding danger positions without the first",
+        //   moves
+        // );
       }
 
-      // Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei
+      /* 
+      Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei 
+      */
       let opponentPiecesPositions: string[] = opponentPieceAttackingPositions(
         board,
         selectedPieceColor
       );
       moves = moves.filter((m) => !opponentPiecesPositions.includes(m));
-      console.log("moves excluding opponent pieces positions", moves);
-
-      // Verificar se a peça rei se encontra com 0 movimentos possiveis
-      // if (moves.length === 0) {...}
+      // console.log("moves excluding opponent pieces positions", moves);
     }
 
     setPossibleMoves(moves);
@@ -120,9 +122,14 @@ export default function GameBoard(props: Props) {
 
   const select = useCallback(
     (square: TSquare) => {
-      // Verificar se há peça no quadradro selecionado e se a cor da peça selecionada é igual ao jogador atual
+      /* 
+      Verificar se há peça no quadradro selecionado e se a cor da peça selecionada é igual ao jogador atual 
+      */
       if (!square.piece || !(props.currentPlayer === square.piece?.color))
         return;
+
+        ChessSound.playClickAudio();
+
       setSelectedSquare(square);
     },
     [selectedSquare]
@@ -130,30 +137,37 @@ export default function GameBoard(props: Props) {
 
   const movePiece = useCallback(
     (chosenSquare: TSquare) => {
-      if (!selectedSquare) return;
+      if (!selectedSquare?.piece) return;
 
       const { row: chosenRow, col: chosenCol } = chosenSquare.position;
       const { row: selectedRow, col: selectedCol } = selectedSquare.position;
       const selectedPiece = selectedSquare.piece;
 
-      // Verificar se o jogador atual selecionou sua peça e clicou em outra peça sua
+      /* Verificar se a peça posição escolhida é a que jogador selecionou para desmarcar-la */
+      if (selectedRow === chosenRow && selectedCol === chosenCol) {
+        setSelectedSquare(null);
+        ChessSound.playMoveAudio();
+        return;
+      }
+
+      /* Verificar se o jogador atual selecionou sua peça e clicou em outra peça sua */
       if (props.currentPlayer === chosenSquare.piece?.color) {
         select(chosenSquare);
         return;
       }
 
-      // Peça selecionada não se moverá para o quadrado selecionado se não tiver possiveis movimentos
+      /* Peça selecionada não se moverá para o quadrado selecionado se não tiver possiveis movimentos */
       if (!possibleMoves.includes(`${chosenRow}-${chosenCol}`)) return;
 
+      if (board[chosenRow][chosenCol].piece === null)
+      ChessSound.playconditionalMoveAudio(selectedPiece.name);
+
+      /* Verificar se peça selecionada é um Rei e posição de destino está livre de perigo */
       if (
         selectedPiece?.name === "King" &&
         dangerPositions.includes(`${chosenRow}-${chosenCol}`) &&
         board[chosenRow][chosenCol].piece === null
-      )
-        return; //
-
-      if (chosenRow === selectedRow && chosenCol === selectedCol) {
-        setSelectedSquare(null);
+      ) {
         return;
       }
 
@@ -165,6 +179,7 @@ export default function GameBoard(props: Props) {
         chosenSquarePiece.color !== selectedPiece?.color &&
         chosenSquarePiece.color !== null
       ) {
+        ChessSound.playAttackAudio();
         props.incrementDeadPieces(chosenSquarePiece);
       }
 
@@ -204,8 +219,10 @@ export default function GameBoard(props: Props) {
       setReplacementPeace(square);
     }
 
-    // Verificar se rei do oponente se encontra em alguma dos possiveis movimentos futuro da peça movida
-    // let kingPosition = getOpponentKingPosition(board, piece.color);
+    /* 
+    Verificar se rei do oponente se encontra em alguma dos possiveis movimentos futuro da peça movida
+    let kingPosition = getOpponentKingPosition(board, piece.color); 
+    */
     let currentColor: TPieceColor = piece.color === "white" ? "black" : "white";
     let opponenteKingPosition =
       kingPosition[currentColor as keyof typeof kingPosition];
@@ -215,7 +232,7 @@ export default function GameBoard(props: Props) {
 
     let hasDangerPositions = false;
 
-    // Verificar se peça movimentada deu check no rei oponente
+    /* Verificar se peça movimentada deu check no rei oponente */
     if (
       piece
         .possibleMoves(board, position.row, position.col)
@@ -233,7 +250,7 @@ export default function GameBoard(props: Props) {
 
     if (!opponentKingPiece) return;
 
-    // Verificar se rei oponente não há possiveis movimento. caso resolvido, checkmate
+    /*/ Verificar se rei oponente não há possiveis movimento. caso resolvido, checkmate */
     let opponentKingPieceMoves = opponentKingPiece.possibleMoves(
       board,
       Number(row),
@@ -246,6 +263,15 @@ export default function GameBoard(props: Props) {
         (m) => !opponentPieceAttackingPositions(board, currentColor).includes(m)
       ).length === 0
     ) {
+      console.log("opponentKingPieceMoves", opponentKingPieceMoves);
+      console.log("hasDangerPositions", hasDangerPositions);
+      console.log(
+        "opponentKingPieceMovesFiltered",
+        opponentKingPieceMoves.filter(
+          (m) =>
+            !opponentPieceAttackingPositions(board, currentColor).includes(m)
+        )
+      );
       defineWinner(piece.color);
       return;
     }

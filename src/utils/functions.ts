@@ -101,7 +101,9 @@ export const opponentPieceAttackingPositions = (
 ) => {
   let opponentPiecesPositions: string[] = [];
 
-  // Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei
+  /* 
+  Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei 
+  */
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       let { position, piece } = board[row][col];
@@ -123,18 +125,26 @@ export const opponentPieceAttackingPositions = (
           continue;
         }
 
-        // Verificar se peça é uma das escolhidas abaixo para acrescentar um argumento adicional que inclui a ultima peça que tem a mesma cor que ela. obj: incluir a ultima peça nas lista para ser considerada na filtragem de possiveis movimentos da peça rei (opponentPiecesPositions)
+        /* 
+        Verificar se peça é uma das escolhidas abaixo para acrescentar um argumento adicional que inclui a ultima peça que tem a mesma cor que ela. obj: incluir a ultima peça nas lista para ser considerada na filtragem de possiveis movimentos da peça rei (opponentPiecesPositions) 
+        */
 
         // Usada em: useEffect(..., [selectedSquare]), ultima condição de checkPiece() em GameBoard.tsx **
-        if (["Rook", "Bishop", "Knight", "Queen"].includes(piece.name)) {
-          opponentPiecesPositions.push(
-            ...piece.possibleMoves(board, position.row, position.col, true)
-          );
-        } else {
-          opponentPiecesPositions.push(
-            ...piece.possibleMoves(board, position.row, position.col)
-          );
-        }
+        let includeSameColorLast = [
+          "Rook",
+          "Bishop",
+          "Knight",
+          "Queen",
+        ].includes(piece.name);
+
+        opponentPiecesPositions.push(
+          ...piece.possibleMoves(
+            board,
+            position.row,
+            position.col,
+            includeSameColorLast
+          )
+        );
       }
     }
   }
