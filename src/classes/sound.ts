@@ -1,10 +1,22 @@
-import clickSound from "/public/sounds/click.mp3";
-import moveSound from "/public/sounds/move.mp3";
-import attackSound from "/public/sounds/attack.mp3";
-import cavaloSound from "/public/sounds/cavalo.mp3";
+import clickSound from "/sounds/click.mp3";
+import moveSound from "/sounds/move.mp3";
+import attackSound from "/sounds/attack.mp3";
+import cavaloSound from "/sounds/cavalo.mp3";
 import { TPieceName } from "@/types";
 
 export class ChessSound {
+  public static preLoadAudios = () => {
+    const audios = [
+      new Audio(clickSound),
+      new Audio(moveSound),
+      new Audio(attackSound),
+      new Audio(cavaloSound),
+    ];
+    for (const audio of audios) {
+      audio.preload = "auto";
+    }
+  };
+
   public static playClickAudio = () => {
     const clickAudio = new Audio(clickSound);
     clickAudio.volume = 0.5;
