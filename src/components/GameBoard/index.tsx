@@ -48,10 +48,7 @@ export default function GameBoard(props: Props) {
   }, []);
 
   useEffect(() => {
-    if (replacementPeace?.piece?.color) {
-      // show modal
-      setShowModal(true);
-    }
+    if (replacementPeace?.piece?.color) setShowModal(true);
   }, [replacementPeace]);
 
   // Efeito para o state "selectedSquare"
@@ -62,9 +59,10 @@ export default function GameBoard(props: Props) {
       return;
     }
 
-    let { row: selectedRow, col: selectedCol } = selectedSquare.position;
-    let { name: selectedPieceName, color: selectedPieceColor } =
-      selectedSquare.piece;
+    let {
+      piece: { name: selectedPieceName, color: selectedPieceColor },
+      position: { row: selectedRow, col: selectedCol },
+    } = selectedSquare;
 
     // Retornar possiveis movimentos da peça selecionada
     let moves: string[] = selectedSquare.piece.possibleMoves(
@@ -84,16 +82,9 @@ export default function GameBoard(props: Props) {
         /*
         Uma lista de posições de dangerPositions excluindo a posição da peça do oponente que causou as posições de dangerPositions 
         */
-        let dangerPositionsWithoutFirstPosition = dangerPositions.filter(
-          (_, i) => i !== 0
-        );
         moves = moves.filter(
-          (m) => !dangerPositionsWithoutFirstPosition.includes(m)
+          (m) => !dangerPositions.filter((_, i) => i !== 0).includes(m)
         );
-        // console.log(
-        //   "moves excluding danger positions without the first",
-        //   moves
-        // );
       }
 
       /* 
@@ -227,11 +218,10 @@ export default function GameBoard(props: Props) {
     let kingPosition = getOpponentKingPosition(board, piece.color); 
     */
     let currentColor: TPieceColor = piece.color === "white" ? "black" : "white";
-    let opponenteKingPosition =
-      kingPosition[currentColor as keyof typeof kingPosition];
+    let opponenteKingPosition = kingPosition[currentColor];
 
-    let [row, col] = opponenteKingPosition.split("-");
-    let opponentKingPiece = board[Number(row)][Number(col)].piece;
+    let [row, col] = opponenteKingPosition.split("-").map((p) => Number(p));
+    let opponentKing = board[row][col].piece;
 
     let tempDangerPositions: string[] = [];
 
@@ -241,36 +231,25 @@ export default function GameBoard(props: Props) {
         .possibleMoves(board, position.row, position.col)
         .includes(opponenteKingPosition)
     ) {
-      tempDangerPositions = getDangerPositions(
-        { row: Number(row), col: Number(col) },
-        square,
-        board
-      );
+      tempDangerPositions = getDangerPositions({ row, col }, square, board);
       setDangerPositions(tempDangerPositions);
     }
 
-    if (!opponentKingPiece) return;
+    if (!opponentKing) return;
 
     /* Verificar se rei oponente não há possiveis movimento. caso resolvido, checkmate */
-    let opponentKingPieceMoves = opponentKingPiece.possibleMoves(
-      board,
-      Number(row),
-      Number(col)
-    );
     let opponentAttackingPositions = opponentPieceAttackingPositions(
       board,
       currentColor
     );
 
-    opponentKingPieceMoves = opponentKingPieceMoves.filter(
-      (m) => !opponentAttackingPositions.includes(m)
-    );
-    opponentKingPieceMoves = opponentKingPieceMoves.filter(
-      (m) => !tempDangerPositions.includes(m)
-    );
+    let opponentKingMoves = opponentKing
+      .possibleMoves(board, row, col)
+      .filter((m) => !opponentAttackingPositions.includes(m))
+      .filter((m) => !tempDangerPositions.includes(m));
 
     if (
-      opponentKingPieceMoves.length === 0 &&
+      opponentKingMoves.length === 0 &&
       opponentAttackingPositions.includes(opponenteKingPosition)
     ) {
       defineWinner(piece.color);

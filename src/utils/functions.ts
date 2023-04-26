@@ -13,6 +13,7 @@ import {
   TSquare,
 } from "@/types";
 
+/* Retorna uma lista de posições que estão entre a peça rei e a peça oponente */
 export const getBlockingPositions = (
   dangerPositions: string[],
   board: TBoard
@@ -20,8 +21,8 @@ export const getBlockingPositions = (
   let dangerPositionsAfterKingPosition: string[] = [];
 
   for (const position of dangerPositions) {
-    let [row, col] = position.split("-");
-    if (board[Number(row)][Number(col)].piece?.name === "King") break;
+    let [row, col] = position.split("-").map((p) => Number(p));
+    if (board[row][col].piece?.name === "King") break;
     dangerPositionsAfterKingPosition.push(position);
   }
 
