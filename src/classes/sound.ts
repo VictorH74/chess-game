@@ -40,10 +40,10 @@ export class ChessSound {
   };
 
   public static playconditionalMoveAudio = (pieceName: TPieceName) => {
-    if (pieceName === "Knight") {
-      this.playCavaloAudio();
-      return;
-    }
+    // if (pieceName === "Knight") {
+    //   this.playCavaloAudio();
+    //   return;
+    // }
     this.playMoveAudio();
   };
 }
