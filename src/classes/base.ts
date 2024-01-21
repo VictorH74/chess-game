@@ -13,7 +13,7 @@ export class BasePiece {
     board: TSquare[][],
     selectedRow: number,
     selectedCol: number,
-  ) {
+  ): `${number}-${number}`[] {
     throw new Error("Abstract Method has no implementation");
   }
 }

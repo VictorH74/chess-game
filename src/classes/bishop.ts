@@ -12,7 +12,7 @@ export class BishopPiece extends BasePiece {
     selectedCol: number,
     includeLastSameColor?: boolean
   ) {
-    let moves = [];
+    let moves: `${number}-${number}`[] = [];
 
     // Check board on upper-left diagonal
     for (

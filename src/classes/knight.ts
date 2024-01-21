@@ -12,7 +12,7 @@ export class KnightPiece extends BasePiece {
     selectedCol: number,
     includeLastSameColor?: boolean
   ) {
-    let moves = [];
+    let moves: `${number}-${number}`[] = [];
     const directions = [
       [-1, 2],
       [1, 2],

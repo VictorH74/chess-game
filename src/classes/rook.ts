@@ -12,57 +12,57 @@ export class RookPiece extends BasePiece {
     selectedCol: number,
     includeLastSameColor?: boolean
   ) {
-    let moves = [];
+    let moves: `${number}-${number}`[] = [];
 
     // RIGHT
     for (let col = selectedCol; col < 7; col++) {
-      if (
-        !board[selectedRow][col + 1].piece ||
-        board[selectedRow][col + 1].piece?.color !== this.color ||
-        (board[selectedRow][col + 1].piece?.color === this.color &&
-          includeLastSameColor)
+      const piece = board[selectedRow][col + 1].piece
+
+      if (!piece || piece?.color !== this.color ||
+        (piece?.color === this.color && includeLastSameColor)
       )
         moves.push(`${selectedRow}-${col + 1}`);
-      if (!board[selectedRow][col + 1].piece) continue;
+
+      if (!piece) continue;
       break;
     }
 
     // LEFT
     for (let col = selectedCol; col > 0; col--) {
-      if (
-        !board[selectedRow][col - 1].piece ||
-        board[selectedRow][col - 1].piece?.color !== this.color ||
-        (board[selectedRow][col - 1].piece?.color === this.color &&
-          includeLastSameColor)
+      const piece = board[selectedRow][col - 1].piece
+
+      if (!piece || piece?.color !== this.color ||
+        (piece?.color === this.color && includeLastSameColor)
       )
         moves.push(`${selectedRow}-${col - 1}`);
-      if (!board[selectedRow][col - 1].piece) continue;
+
+      if (!piece) continue;
       break;
     }
 
     // UP
     for (let row = selectedRow; row < 7; row++) {
-      if (
-        !board[row + 1][selectedCol].piece ||
-        board[row + 1][selectedCol].piece?.color !== this.color ||
-        (board[row + 1][selectedCol].piece?.color === this.color &&
-          includeLastSameColor)
+      const piece = board[row + 1][selectedCol].piece
+
+      if (!piece || piece?.color !== this.color ||
+        (piece?.color === this.color && includeLastSameColor)
       )
         moves.push(`${row + 1}-${selectedCol}`);
-      if (!board[row + 1][selectedCol].piece) continue;
+
+      if (!piece) continue;
       break;
     }
 
     // DOWN
     for (let row = selectedRow; row > 0; row--) {
-      if (
-        !board[row - 1][selectedCol].piece ||
-        board[row - 1][selectedCol].piece?.color !== this.color ||
-        (board[row - 1][selectedCol].piece?.color === this.color &&
-          includeLastSameColor)
+      const piece = board[row - 1][selectedCol].piece
+
+      if (!piece || piece?.color !== this.color ||
+        (piece?.color === this.color && includeLastSameColor)
       )
         moves.push(`${row - 1}-${selectedCol}`);
-      if (!board[row - 1][selectedCol].piece) continue;
+
+      if (!piece) continue;
       break;
     }
 

@@ -37,8 +37,8 @@ export const gePieceClassbyPosition = (
     row === 0 || row === 1
       ? "white"
       : row === 7 || row === 6
-      ? "black"
-      : undefined;
+        ? "black"
+        : undefined;
 
   if (!color) return null;
 
@@ -61,10 +61,10 @@ export const createPiece = (
   color: TPieceColor
 ): TPieceClass => {
   if (name === "Rook") return new RookPiece("Rook", color);
-  if (name === "Knight") return new KnightPiece("Rook", color);
-  if (name === "Bishop") return new BishopPiece("Rook", color);
-  if (name === "Queen") return new QueenPiece("Rook", color);
-  if (name === "King") return new KingPiece("Rook", color);
+  if (name === "Knight") return new KnightPiece("Knight", color);
+  if (name === "Bishop") return new BishopPiece("Bishop", color);
+  if (name === "Queen") return new QueenPiece("Queen", color);
+  if (name === "King") return new KingPiece("King", color);
   return new PawnPiece("Pawn", color);
 };
 
@@ -74,7 +74,7 @@ export const getDangerPositions = (
   board: TBoard
 ) => {
   let { row, col } = square.position;
-  let places: string[] = [];
+  let places: `${number}-${number}`[] = [];
 
   // temp
   if (square.piece && ["Knight", "Pawn", "King"].includes(square.piece?.name)) {
@@ -111,15 +111,12 @@ export const getDangerPositions = (
   return places;
 };
 
-export const opponentPieceAttackingPositions = (
+export const opponentPiecePossibleMoves = (
   board: TBoard,
   selectedPieceColor: TPieceColor
 ) => {
-  let opponentPiecesPositions: string[] = [];
-
-  /* 
-  Verificar cada peça do oponente se a peça selecionada for o rei para identificar posições de risco dos possiveis movimentos da peça rei 
-  */
+  let opponentPiecesPositions: `${number}-${number}`[] = [];
+  
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       let { position, piece } = board[row][col];

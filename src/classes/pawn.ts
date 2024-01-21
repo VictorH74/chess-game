@@ -11,8 +11,8 @@ export class PawnPiece extends BasePiece {
     selectedRow: number,
     selectedCol: number,
     nullCondition?: boolean
-  ): string[] {
-    let moves = [];
+  ) {
+    let moves: `${number}-${number}`[] = [];
 
     if (
       // Check if the pawn front is there not piece

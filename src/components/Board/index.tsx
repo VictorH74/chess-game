@@ -1,30 +1,20 @@
 import { TSquare } from "@/types";
 import BoardSquare from "../BoardSquare";
+import { useBoardCtx } from "@/contexts/BoardContext";
 
-interface Props {
-  board: TSquare[][];
-  squareHandleClick: (square: TSquare) => void;
-  selectedSquare: TSquare | null;
-  possibleMoves: string[];
-  dangerPositions: string[];
-}
-
-export default function Board(props: Props) {
+export default function Board() {
+  const boardCtx = useBoardCtx();
   return (
     <div
       className={`h-full aspect-square shadow-xl overflow-hidden rounded-md`}
     >
-      {props.board.map((row: TSquare[], rowIndex) => (
+      {boardCtx.board.map((row: TSquare[], rowIndex) => (
         <div key={rowIndex} className="flex flex-row">
           {row.map((square: TSquare, colIndex) => (
             <BoardSquare
               key={colIndex}
               odd={(rowIndex + colIndex) % 2 !== 0}
               square={square}
-              onClick={props.squareHandleClick}
-              selectedSquare={props.selectedSquare}
-              possibleMoves={props.possibleMoves}
-              dangerPositions={props.dangerPositions}
             />
           ))}
         </div>

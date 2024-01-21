@@ -7,7 +7,7 @@ export class KingPiece extends BasePiece {
   }
 
   possibleMoves(board: TSquare[][], selectedRow: number, selectedCol: number) {
-    let moves = [];
+    let moves: `${number}-${number}`[] = [];
 
     const directions = [-1, 0, 1];
 
