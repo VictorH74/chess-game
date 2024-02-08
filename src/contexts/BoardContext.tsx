@@ -2,7 +2,7 @@ import { ChessSound } from "@/classes/sound";
 import { TPieceClass, TPieceColor, TSquare } from "@/types";
 import {
   gePieceClassbyPosition,
-  getDangerPositions,
+  getOpponentCheckMoves,
   opponentPiecePossibleMoves,
 } from "@/utils/functions";
 import React from "react";
@@ -15,8 +15,8 @@ export interface BoardCtxProps {
   highlightedSquare: TSquare | null;
   setHighlightedSquare: (square: TSquare | null) => void;
   possibleMoves: `${number}-${number}`[];
-  dangerousPositions: `${number}-${number}`[];
-  setDangerousPositions: (a: `${number}-${number}`[]) => void;
+  opponentCheckMoves: `${number}-${number}`[];
+  setOpponentCheckMoves: (a: `${number}-${number}`[]) => void;
   kingPosition: KingPosMap;
   setKingPosition: (color: TPieceColor, value: `${number}-${number}`) => void;
   checkPiece: (square: TSquare) => void;
@@ -36,28 +36,30 @@ const initialPositions = array.map((_, row) =>
 const defaultValue: BoardCtxProps = {
   board: initialPositions,
   highlightedSquare: null,
-  setHighlightedSquare: () => {},
+  replacementPeace: null,
+  opponentCheckMoves: [],
   possibleMoves: [],
-  dangerousPositions: [],
-  setDangerousPositions: () => {},
   kingPosition: {
     white: "0-4",
     black: "7-4",
   },
+  chooseReplacementPiece: () => {},
+  setOpponentCheckMoves: () => {},
+  setHighlightedSquare: () => {},
   setKingPosition: () => {},
   checkPiece: () => {},
   setBoard: () => {},
-  chooseReplacementPiece: () => {},
-  replacementPeace: null,
 };
 
 const boardCtx = React.createContext(defaultValue);
 
 export const useBoardCtx = () => React.useContext(boardCtx);
 
-const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
+export default function BoardCtxProvider({
   children,
-}) => {
+}: {
+  children: React.ReactNode;
+}) {
   const gameCtx = useGameCtx();
 
   const [board, setBoardState] = React.useState<TSquare[][]>(initialPositions);
@@ -68,7 +70,7 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
   >([]);
   const [replacementPeace, setReplacementPeace] =
     React.useState<TSquare | null>(null);
-  const [dangerousPositions, setDangerousPositionsState] = React.useState<
+  const [opponentCheckMoves, setOpponentCheckMovesState] = React.useState<
     `${number}-${number}`[]
   >([]);
   const [kingPosition, setKingPositionState] = React.useState<KingPosMap>(
@@ -107,26 +109,22 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (isKingPiece) {
       // filtrar possiveis movimentos do rei inpedindo movimentos perigosos
-      let opponentPieceMoves = opponentPiecePossibleMoves(
+      let dangerousMoves = opponentPiecePossibleMoves(
         board,
         highlightedPieceColor
       );
-
-      possibleMoves = possibleMoves.filter(
-        (m) => !opponentPieceMoves.includes(m)
-      );
-
-      if (dangerousPositions.length > 0) {
+      possibleMoves = possibleMoves.filter((m) => !dangerousMoves.includes(m));
+      if (opponentCheckMoves.length > 0) {
         possibleMoves = possibleMoves.filter(
-          (m) => !dangerousPositions.slice(1).includes(m)
+          (m) => !opponentCheckMoves.slice(1).includes(m)
         );
       }
-    } else if (dangerousPositions.length > 0) {
-      // filtrar possiveis movimentos da peça incluindo apenas posições que estão em dangerousPositions
+    } else if (opponentCheckMoves.length > 0) {
+      // filtrar possiveis movimentos da peça incluindo apenas posições que estão em opponentCheckMoves
       possibleMoves = possibleMoves.filter((m) => {
         let positions: `${number}-${number}`[] = [];
 
-        for (const position of dangerousPositions) {
+        for (const position of opponentCheckMoves) {
           let [row, col] = position.split("-").map((p) => Number(p));
           if (board[row][col].piece?.name === "King") break;
           positions.push(position);
@@ -170,7 +168,7 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
     let [row, col] = opponenteKingPosition.split("-").map((p) => Number(p));
     let opponentKing = board[row][col].piece;
 
-    let tempDangerPositions: `${number}-${number}`[] = [];
+    let tempOpponentCheckMoves: `${number}-${number}`[] = [];
 
     /* Verificar se peça movimentada deu check no rei oponente */
     if (
@@ -178,8 +176,12 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
         .possibleMoves(board, position.row, position.col)
         .includes(opponenteKingPosition)
     ) {
-      tempDangerPositions = getDangerPositions({ row, col }, square, board);
-      setDangerousPositions(tempDangerPositions);
+      tempOpponentCheckMoves = getOpponentCheckMoves(
+        { row, col },
+        square,
+        board
+      );
+      setOpponentCheckMoves(tempOpponentCheckMoves);
     }
 
     if (!opponentKing) return;
@@ -193,34 +195,44 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
     let opponentKingMoves = opponentKing
       .possibleMoves(board, row, col)
       .filter((m) => !opponentAttackingPositions.includes(m))
-      .filter((m) => !tempDangerPositions.includes(m));
+      .filter((m) => !tempOpponentCheckMoves.includes(m));
 
     // verificar se alguns dos possiveis movimento de peças do oponente podem salvar o rei
     const kingSafeCheck = () => {
-      let positions: `${number}-${number}`[] = [
-        `${position.row}-${position.col}`, // incluir peça atual
-      ];
-      for (let row = 0; row < 7; row++) {
-        for (let col = 0; col < 7; col++) {
+      let positions: `${number}-${number}`[] = [];
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
           if (
             piece &&
             board[row][col].piece !== null &&
-            board[row][col].piece?.color !== piece.color &&
-            board[row][col].piece?.name !== "King"
+            board[row][col].piece?.color !== piece.color
           ) {
-            positions = [
-              ...positions,
-              ...(board[row][col].piece?.possibleMoves(
+            let piecePossibleMoves = board[row][col].piece?.possibleMoves(
+              board,
+              row,
+              col
+            ) as `${number}-${number}`[];
+
+            if (board[row][col].piece?.name === "King") {
+              let dangerousMoves = opponentPiecePossibleMoves(
                 board,
-                row,
-                col
-              ) as `${number}-${number}`[]),
-            ];
+                currentColor
+              );
+              piecePossibleMoves = piecePossibleMoves.filter(
+                (m) => !dangerousMoves.includes(m)
+              );
+              if (opponentCheckMoves.length > 0) {
+                piecePossibleMoves = piecePossibleMoves.filter(
+                  (m) => !opponentCheckMoves.slice(1).includes(m)
+                );
+              }
+            }
+
+            positions = [...positions, ...piecePossibleMoves];
           }
         }
       }
-
-      positions = positions.filter((p) => tempDangerPositions.includes(p));
+      positions = positions.filter((p) => tempOpponentCheckMoves.includes(p));
       return positions.length > 0;
     };
 
@@ -245,8 +257,8 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
       [color]: value,
     }));
 
-  const setDangerousPositions = (a: `${number}-${number}`[]) =>
-    setDangerousPositionsState(a);
+  const setOpponentCheckMoves = (a: `${number}-${number}`[]) =>
+    setOpponentCheckMovesState(a);
 
   return (
     <boardCtx.Provider
@@ -255,8 +267,8 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
         highlightedSquare,
         setHighlightedSquare,
         possibleMoves,
-        dangerousPositions,
-        setDangerousPositions,
+        opponentCheckMoves,
+        setOpponentCheckMoves,
         kingPosition,
         setKingPosition,
         checkPiece,
@@ -268,6 +280,4 @@ const BoardCtxProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </boardCtx.Provider>
   );
-};
-
-export default BoardCtxProvider;
+}

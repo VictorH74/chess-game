@@ -23,7 +23,6 @@ export class QueenPiece extends BasePiece {
         moves.push(`${selectedRow}-${col + 1}`);
 
       if (!piece) continue;
-      console.table(piece)
       break;
     }
 

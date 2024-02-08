@@ -1,8 +1,9 @@
 import { TSquare } from "@/types";
 import BoardSquare from "../BoardSquare";
 import { useBoardCtx } from "@/contexts/BoardContext";
+import React from "react";
 
-export default function Board() {
+export default React.memo(function Board() {
   const boardCtx = useBoardCtx();
   return (
     <div
@@ -21,4 +22,4 @@ export default function Board() {
       ))}
     </div>
   );
-}
+});

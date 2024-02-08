@@ -58,7 +58,8 @@ function App() {
         min-w-[48px] 
         flex-wrap 
         justify-center 
-        px-3"
+        px-2
+        "
         >
           {deadBlackPiaces.map((piece, i) => (
             <div className="h-12" key={i}>
@@ -103,7 +104,7 @@ function App() {
         flex @[1020px]:flex-col 
         flex-wrap 
         justify-center 
-        px-3
+        px-2
         min-h-[48px] 
         min-w-[48px] 
         "

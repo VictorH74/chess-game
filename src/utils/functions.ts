@@ -68,7 +68,7 @@ export const createPiece = (
   return new PawnPiece("Pawn", color);
 };
 
-export const getDangerPositions = (
+export const getOpponentCheckMoves = (
   kingPosition: TPosition,
   square: TSquare,
   board: TBoard
@@ -76,7 +76,6 @@ export const getDangerPositions = (
   let { row, col } = square.position;
   let places: `${number}-${number}`[] = [];
 
-  // temp
   if (square.piece && ["Knight", "Pawn", "King"].includes(square.piece?.name)) {
     places.push(`${kingPosition.row}-${kingPosition.col}`);
     return places;

@@ -33,7 +33,7 @@ export default function BoardSquare({ square, odd }: Props) {
             ? "border-4 border-blue-400"
             : boardCtx.possibleMoves.includes(`${row}-${col}`)
             ? "border-4 border-teal-500"
-            : boardCtx.dangerousPositions.includes(`${row}-${col}`)
+            : boardCtx.opponentCheckMoves.includes(`${row}-${col}`)
             ? "border-4 border-red-700"
             : ""
         }`}

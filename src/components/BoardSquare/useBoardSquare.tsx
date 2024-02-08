@@ -53,7 +53,7 @@ const useBoardSquare = () => {
       /* Verificar se peça selecionada é um Rei e posição de destino está livre de perigo */
       if (
         highlightedPiece?.name === "King" &&
-        boardCtx.dangerousPositions.includes(`${chosenRow}-${chosenCol}`) &&
+        boardCtx.opponentCheckMoves.includes(`${chosenRow}-${chosenCol}`) &&
         boardCtx.board[chosenRow][chosenCol].piece === null
       ) {
         return;
@@ -91,8 +91,8 @@ const useBoardSquare = () => {
       boardCtx.checkPiece(newBoard[chosenRow][chosenCol]);
       boardCtx.setBoard(newBoard);
       boardCtx.setHighlightedSquare(null);
-      if (boardCtx.dangerousPositions.length > 0)
-        boardCtx.setDangerousPositions([]);
+      if (boardCtx.opponentCheckMoves.length > 0)
+        boardCtx.setOpponentCheckMoves([]);
       gameCtx.changeCurrentPlayer();
     },
     [boardCtx.highlightedSquare, boardCtx.possibleMoves]

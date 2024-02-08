@@ -1,5 +1,6 @@
 import { TPieceColor, TPieceName, TSquare } from "@/types";
 import { BasePiece } from "./base";
+import { opponentPiecePossibleMoves } from "@/utils/functions";
 
 export class KingPiece extends BasePiece {
   constructor(name: TPieceName, color: TPieceColor) {
@@ -24,6 +25,6 @@ export class KingPiece extends BasePiece {
       }
     }
 
-    return moves;
+    return moves
   }
 }
