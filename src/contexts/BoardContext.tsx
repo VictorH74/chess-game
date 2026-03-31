@@ -25,35 +25,25 @@ export interface BoardCtxProps {
   replacementPeace: TSquare | null;
 }
 
-const array = Array(8).fill(undefined);
-const initialPositions = array.map((_, row) =>
-  array.map((_, col) => ({
-    position: { row, col },
-    piece: gePieceClassbyPosition({ row, col }),
-  }))
-);
+const createInitialBoard = () =>
+  Array(8)
+    .fill(undefined)
+    .map((_, row) =>
+      Array(8)
+        .fill(undefined)
+        .map((_, col) => ({
+          position: { row, col },
+          piece: gePieceClassbyPosition({ row, col }),
+        })),
+    );
 
-const defaultValue: BoardCtxProps = {
-  board: initialPositions,
-  highlightedSquare: null,
-  replacementPeace: null,
-  opponentCheckMoves: [],
-  possibleMoves: [],
-  kingPosition: {
-    white: "0-4",
-    black: "7-4",
-  },
-  chooseReplacementPiece: () => {},
-  setOpponentCheckMoves: () => {},
-  setHighlightedSquare: () => {},
-  setKingPosition: () => {},
-  checkPiece: () => {},
-  setBoard: () => {},
-};
+const boardCtx = React.createContext<BoardCtxProps | null>(null);
 
-const boardCtx = React.createContext(defaultValue);
-
-export const useBoardCtx = () => React.useContext(boardCtx);
+export const useBoardCtx = () => {
+  const ctx = React.useContext(boardCtx);
+  if (!ctx) throw new Error('useBoardCtx must be used within BoardCtxProvider')
+  return ctx
+}
 
 export default function BoardCtxProvider({
   children,
@@ -62,7 +52,8 @@ export default function BoardCtxProvider({
 }) {
   const gameCtx = useGameCtx();
 
-  const [board, setBoardState] = React.useState<TSquare[][]>(initialPositions);
+  const [board, setBoardState] =
+    React.useState<TSquare[][]>(createInitialBoard);
   const [highlightedSquare, setHighlightedSquareState] =
     React.useState<TSquare | null>(null);
   const [possibleMoves, setPossibleMoves] = React.useState<
@@ -73,9 +64,10 @@ export default function BoardCtxProvider({
   const [opponentCheckMoves, setOpponentCheckMovesState] = React.useState<
     `${number}-${number}`[]
   >([]);
-  const [kingPosition, setKingPositionState] = React.useState<KingPosMap>(
-    defaultValue.kingPosition
-  );
+  const [kingPosition, setKingPositionState] = React.useState<KingPosMap>({
+    white: "0-4",
+    black: "7-4",
+  });
 
   React.useEffect(() => {
     ChessSound.preLoadAudios();
@@ -102,7 +94,7 @@ export default function BoardCtxProvider({
       highlightedSquare.piece.possibleMoves(
         board,
         highlightedRow,
-        highlightedCol
+        highlightedCol,
       );
 
     const isKingPiece = highlightedPieceName === "King";
@@ -111,12 +103,12 @@ export default function BoardCtxProvider({
       // filtrar possiveis movimentos do rei inpedindo movimentos perigosos
       let dangerousMoves = opponentPiecePossibleMoves(
         board,
-        highlightedPieceColor
+        highlightedPieceColor,
       );
       possibleMoves = possibleMoves.filter((m) => !dangerousMoves.includes(m));
       if (opponentCheckMoves.length > 0) {
         possibleMoves = possibleMoves.filter(
-          (m) => !opponentCheckMoves.slice(1).includes(m)
+          (m) => !opponentCheckMoves.slice(1).includes(m),
         );
       }
     } else if (opponentCheckMoves.length > 0) {
@@ -179,7 +171,7 @@ export default function BoardCtxProvider({
       tempOpponentCheckMoves = getOpponentCheckMoves(
         { row, col },
         square,
-        board
+        board,
       );
       setOpponentCheckMoves(tempOpponentCheckMoves);
     }
@@ -189,7 +181,7 @@ export default function BoardCtxProvider({
     /* Verificar se rei oponente não há possiveis movimento. caso sim, checkmate */
     let opponentAttackingPositions = opponentPiecePossibleMoves(
       board,
-      currentColor
+      currentColor,
     );
 
     let opponentKingMoves = opponentKing
@@ -210,20 +202,20 @@ export default function BoardCtxProvider({
             let piecePossibleMoves = board[row][col].piece?.possibleMoves(
               board,
               row,
-              col
+              col,
             ) as `${number}-${number}`[];
 
             if (board[row][col].piece?.name === "King") {
               let dangerousMoves = opponentPiecePossibleMoves(
                 board,
-                currentColor
+                currentColor,
               );
               piecePossibleMoves = piecePossibleMoves.filter(
-                (m) => !dangerousMoves.includes(m)
+                (m) => !dangerousMoves.includes(m),
               );
               if (opponentCheckMoves.length > 0) {
                 piecePossibleMoves = piecePossibleMoves.filter(
-                  (m) => !opponentCheckMoves.slice(1).includes(m)
+                  (m) => !opponentCheckMoves.slice(1).includes(m),
                 );
               }
             }
